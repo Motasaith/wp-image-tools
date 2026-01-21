@@ -1,0 +1,357 @@
+/* Image Tools Hub Styling - Hybrid Design + Pricing */
+
+/* Variables */
+:root {
+    --hub-bg: #f8f9fa; /* Very Light Gray */
+    --card-bg: #ffffff;
+    --text-primary: #1a1a1a;
+    --text-secondary: #666666;
+    --brand-pink: #ff4757; 
+    --brand-pink-hover: #ff6b81;
+    --brand-blue: #4854f6; /* Reference Blue */
+    --brand-blue-hover: #5b66f7;
+    --text-green: #2ecc71;
+    --text-blue: #3498db;
+}
+
+body {
+    background-color: var(--hub-bg);
+    color: var(--text-primary);
+    /* font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; */
+    margin: 0;
+}
+
+.image-hub-wrapper {
+    background-color: var(--hub-bg);
+    /* Subtle Cross Pattern - Faded */
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg stroke='%23e6e8eb' stroke-width='2' opacity='0.6'%3E%3Cpath d='M30 25v10M25 30h10'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    overflow-x: hidden;
+}
+
+.hub-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* ================= Hero Section ================= */
+.hub-hero {
+    text-align: center;
+    padding: 100px 1rem 3rem 1rem;
+}
+
+.hero-title {
+    font-size: 3.25rem; /* Increased slightly per user request */
+    font-weight: 800;
+    margin-bottom: 1rem;
+    line-height: 1.1;
+    
+    /* Gradient Text Logic */
+    background: linear-gradient(135deg, #ff4757 0%, #c56cf0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent; /* Fallback */
+}
+
+.hero-subtitle {
+    font-size: 1.35rem;
+    color: var(--text-secondary);
+    max-width: 700px;
+    margin: 0 auto 2.5rem auto;
+    font-weight: 400;
+}
+
+/* Visual Pills (Fake Navigation) - Kept simple */
+.filter-pills {
+    display: inline-flex;
+    gap: 0.5rem;
+    background: #fff;
+    padding: 0.5rem;
+    border-radius: 50px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.pill {
+    padding: 0.5rem 1.5rem;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: default;
+}
+.pill.active { background-color: #333; color: #fff; }
+
+/* ================= Tools Grid ================= */
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 1.5rem;
+    padding-bottom: 4rem;
+}
+
+@media (min-width: 600px) { .tools-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 900px) { .tools-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1200px) { .tools-grid { grid-template-columns: repeat(4, 1fr); } }
+
+/* Card Style (Hybrid) */
+.tool-card {
+    background: var(--card-bg);
+    border-radius: 16px; /* Soft rounding */
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-decoration: none !important;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid transparent;
+    height: 100%;
+    min-height: 240px; /* Slightly taller for buttons */
+    position: relative;
+    overflow: hidden;
+}
+
+.tool-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+}
+
+/* Card Header (Icon + Title) */
+.card-header {
+    margin-bottom: 1rem;
+}
+
+/* Brand Icon (Red Outline) */
+.brand-icon {
+    width: 42px;
+    height: 42px;
+    color: var(--brand-pink);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.brand-icon svg {
+    width: 100%;
+    height: 100%;
+    stroke-width: 1.5; /* Thin elegant stroke */
+}
+
+/* Text-based icons like 'JPG' */
+.text-icon {
+    font-weight: 900;
+    font-size: 1.4rem;
+    letter-spacing: -1px;
+    justify-content: flex-start;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.card-desc {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0 0 1.5rem 0; /* Space for button */
+    flex-grow: 1;
+}
+
+/* Card Button (Your Site Style) */
+.tool-btn {
+    display: inline-block;
+    padding: 0.6rem 1.4rem;
+    background: linear-gradient(90deg, #ff4757 0%, #ff6b81 100%); /* Brand Gradient */
+    color: white;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-align: center;
+    width: fit-content;
+    box-shadow: 0 4px 10px rgba(255, 71, 87, 0.3);
+    border: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Hover Effect: Turn Blue (Upscale Now Style) */
+.tool-card:hover .tool-btn {
+    background: #4651e6; /* Brand Blue */
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(70, 81, 230, 0.4); /* Blue shadow */
+}
+
+/* Badges */
+.badge-new {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    color: var(--brand-pink);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: #fff0f1;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+/* ================= Pricing Section ================= */
+.section-pricing {
+    background: #fff;
+    padding: 5rem 0;
+    border-top: 1px solid #eee;
+}
+
+.text-center { text-align: center; }
+.section-title { font-size: 2.5rem; color: var(--text-primary); margin-bottom: 3rem; font-weight: 800; }
+
+.pricing-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-bottom: 5rem;
+    align-items: start;
+}
+
+@media (min-width: 900px) {
+    .pricing-grid { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+}
+
+.pricing-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 2.5rem 2rem;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+    transition: transform 0.3s;
+}
+
+.pricing-card:hover { transform: translateY(-5px); }
+
+/* Highlight Borders */
+.popular-card { border: 1.5px solid var(--brand-pink); }
+.pro-card { border: 1.5px solid var(--brand-blue); }
+
+/* Badges */
+.badge-price-pop, .badge-price-value {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 16px;
+    border-radius: 20px;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.badge-price-pop { background: var(--brand-pink); }
+.badge-price-value { background: var(--brand-blue); }
+
+.plan-name { font-size: 2rem; margin: 1rem 0 0.5rem; font-weight: 800; color: #222; }
+.plan-price { font-size: 1.5rem; color: #555; margin-bottom: 0.5rem; }
+.plan-price .period { font-size: 1rem; color: #888; }
+
+.plan-subtitle { font-size: 1rem; font-weight: 600; margin-bottom: 2rem; }
+.text-green { color: var(--text-green); }
+.text-blue { color: var(--brand-blue); }
+
+.plan-features { list-style: none; padding: 0; margin: 0 0 2rem 0; text-align: left; }
+.plan-features li { margin-bottom: 0.8rem; color: #444; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+.check { font-weight: bold; font-size: 1.1rem; }
+
+/* Pricing Buttons */
+.btn-pricing {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    text-align: center;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    color: #fff;
+    transition: opacity 0.2s;
+}
+.btn-pricing:hover { opacity: 0.9; }
+.btn-pink { background: var(--brand-pink); }
+.btn-blue { background: var(--brand-blue); }
+
+/* ================= Comparison Table ================= */
+.comparison-wrapper {
+    margin-top: 4rem;
+}
+
+.comp-title { font-size: 1.8rem; margin: 0 0 0.5rem 0; color: #222; text-align: left; }
+.comp-desc { color: #666; margin-bottom: 2rem; text-align: left; }
+
+.table-responsive { overflow-x: auto; }
+.comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+.comp-table th, .comp-table td {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+.comp-table th { 
+    background: #fff5f6; /* Very light pink tint for header */
+    color: var(--brand-pink);
+    font-weight: 700;
+}
+.comp-table td:first-child { font-weight: 600; color: #333; }
+.comp-table td:not(:first-child) { color: #555; }
+.text-sm { font-size: 0.85rem; line-height: 1.4; color: #777 !important; }
+
+/* ================= Work Your Way Section ================= */
+.section-work-way {
+    background: #f8f9fa; /* Changed to match subtle bg */
+    padding: 5rem 0;
+}
+.section-title { margin-bottom: 3rem; color: var(--text-primary); }
+
+.features-grid {
+    display: grid;
+    gap: 2rem;
+}
+@media (min-width: 768px) { .features-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.feature-img-placeholder {
+    height: 180px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* CSS Shapes (Simple visuals) */
+.fake-ui-window { width: 60%; height: 70%; background: #f1f3f5; border-radius: 6px; border: 1px solid #ddd; }
+.fake-mobile-frame { width: 30%; height: 80%; border: 2px solid #333; border-radius: 8px; background: #fff; }
+.fake-code-window { font-family: monospace; color: var(--brand-blue); font-weight: bold; background: #eef2ff; padding: 4px 8px; border-radius: 4px; }
+
+/* ================= Trust Section ================= */
+.section-trust {
+    border-top: 1px solid #eee;
+    background: #fff;
+    padding: 4rem 1rem;
+    text-align: center;
+}
+.trust-icons { display: flex; gap: 1rem; justify-content: center; }
+.trust-badge {
+    border: 2px solid #eee; background: #fafafa;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    color: #777; font-weight: 600; font-size: 0.8rem; letter-spacing: 0.5px;
+}
