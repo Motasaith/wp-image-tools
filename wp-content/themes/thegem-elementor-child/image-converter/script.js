@@ -130,9 +130,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div style="display: flex; align-items: center; gap: 15px;">
                     ${statusHtml}
-                    <button class="remove-btn" onclick="removeItem(${index})" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #ccc;">&times;</button>
+                    <button class="remove-btn" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #ccc;">&times;</button>
                 </div>
             `;
+            
+            // Attach event listener with stopPropagation to avoid triggering row select
+            const removeBtn = row.querySelector('.remove-btn');
+            removeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                removeItem(index);
+            });
+
             fileListDiv.appendChild(row);
         });
 
@@ -152,16 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Controls ---
     // No Quality Slider logic needed.
 
-    // Update ONE or ALL items when format changes? 
-    // User Expectation for "Convert" tool: Dropdown usually sets target for ALL.
-    // But we support per-file. Let's make it Smart:
-    // If files are selected, update Active Item.
-    // ALSO, if user changes this, they probably want it for ALL pending items?
-    // Let's stick to: Updates ACTIVE item. 
-    // BUT to be "Premium User Friendly", if we have just uploaded files and haven't tweaked them individually, changing the main dropdown should update all.
-    // Simplified: Updates ACTIVE item. Iterating all to match is a "Batch Settings" feature we might add later or just assume for now.
-    
-    // DECISION: For a simple Converter, the main dropdown should probably update ALL pending items to be useful for batch conversion.
+    // Update ONLY Active Item (User requested individual control)
     formatSelect.addEventListener('change', (e) => {
         const val = e.target.value;
         
@@ -171,17 +170,8 @@ document.addEventListener('DOMContentLoaded', () => {
              if (fileQueue[activeIndex].status === 'done') {
                  fileQueue[activeIndex].status = 'pending';
             }
+            updateUI();
         }
-        
-        // OPINIONATED: Also update ALL other pending items to this format?
-        // This makes the tool much easier to use for batch processing.
-        fileQueue.forEach(item => {
-            if (item.status !== 'done') {
-                 item.targetFormat = val;
-            }
-        });
-        
-        updateUI();
     });
 
     // --- Processing ---

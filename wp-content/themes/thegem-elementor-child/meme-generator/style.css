@@ -1,0 +1,287 @@
+/* Basic Setup */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: #f4f7f6;
+    font-family: 'Outfit', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.meme-app {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.meme-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.meme-title {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.meme-subtitle {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+/* Workspace Layout */
+.meme-workspace {
+    display: flex;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    min-height: 600px;
+}
+
+/* Controls (Left) */
+.meme-controls {
+    width: 350px;
+    background: #f9f9f9;
+    padding: 2rem;
+    border-right: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Tabs */
+.meme-tabs {
+    display: flex;
+    margin-bottom: 1.5rem;
+    background: #e0e0e0;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.tab-btn {
+    flex: 1;
+    border: none;
+    background: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #555;
+    transition: all 0.2s;
+}
+
+.tab-btn.active {
+    background: #fff;
+    color: #007bff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.tab-content {
+    display: none;
+    margin-bottom: 1rem;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Template Grid */
+.template-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    max-height: 200px;
+    /* Scrollable area */
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.template-thumb {
+    width: 100%;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border 0.2s;
+}
+
+.template-thumb:hover,
+.template-thumb.selected {
+    border-color: #007bff;
+    opacity: 0.8;
+}
+
+/* Upload Area */
+.upload-area {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    color: #666;
+    background: #fff;
+}
+
+.upload-area input[type="file"] {
+    display: none;
+}
+
+.btn-secondary {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #e0e0e0;
+    color: #333;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-weight: 500;
+}
+
+.divider {
+    border: 0;
+    border-top: 1px solid #ddd;
+    margin: 1.5rem 0;
+}
+
+/* Inputs */
+.control-group {
+    margin-bottom: 1rem;
+}
+
+.control-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.text-input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.control-group-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.half {
+    flex: 1;
+}
+
+.half input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+/* Download Button */
+.btn-primary {
+    width: 100%;
+    padding: 1rem;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: auto;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+}
+
+/* Preview Area (Right) */
+.meme-preview {
+    flex: 1;
+    background: #333;
+    /* Dark background to make canvas pop */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.canvas-container {
+    max-width: 100%;
+    max-height: 100%;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+#meme-canvas {
+    display: block;
+    max-width: 100%;
+    max-height: 500px;
+    background: #fff;
+    /* White bg for transp images */
+}
+
+#placeholder-msg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    text-align: center;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .meme-workspace {
+        flex-direction: column-reverse;
+        /* Controls below preview on mobile */
+    }
+
+    .meme-controls {
+        width: 100%;
+        border-right: none;
+        border-top: 1px solid #eee;
+    }
+
+    .meme-preview {
+        min-height: 300px;
+        padding: 1rem;
+    }
+
+    #meme-canvas {
+        max-height: 300px;
+    }
+}
+
+/* Dynamic Text Controls */
+#text-editor {
+    transition: all 0.3s ease;
+}
+
+#text-editor textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+.btn-danger {
+    transition: background 0.2s;
+}
+
+.btn-danger:hover {
+    background-color: #ff2e43 !important;
+}
+
+.btn-secondary:hover {
+    background-color: #0069d9 !important;
+}

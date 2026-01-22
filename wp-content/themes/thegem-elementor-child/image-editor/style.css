@@ -1,0 +1,163 @@
+.editor-app {
+    width: 100%;
+    min-height: 80vh;
+    margin: 0;
+    padding: 0;
+    font-family: 'Outfit', sans-serif;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header - Compact for App Mode */
+.editor-header {
+    text-align: center;
+    padding: 10px 20px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    margin-bottom: 0;
+}
+
+.editor-title {
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+.editor-logo {
+    height: 30px !important;
+    margin: 0 !important;
+    max-width: none !important;
+}
+
+.editor-subtitle {
+    display: none;
+    /* Hide subtitle to save space */
+}
+
+/* Workspace */
+/* Workspace */
+.editor-workspace {
+    position: relative;
+    width: 100%;
+    height: 800px;
+    /* Fixed height for editor area */
+    border: none;
+    border-radius: 0;
+    background: #fff;
+    overflow: hidden;
+    box-shadow: none;
+}
+
+/* Upload Screen Overlay */
+.upload-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #fdfdfd;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.upload-box {
+    text-align: center;
+    padding: 40px;
+    border: 2px dashed #ddd;
+    /* Keep dashed border for upload area */
+    border-radius: 12px;
+    background: #fff;
+}
+
+/* Toast UI Overrides */
+#tui-image-editor-container {
+    width: 100%;
+    height: 100%;
+}
+
+.tui-image-editor-header-logo {
+    display: none !important;
+}
+
+.tui-image-editor-header-buttons .tui-image-editor-download-btn {
+    background-color: #2D5BFF !important;
+    border: 1px solid #2D5BFF !important;
+    color: #fff !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 600 !important;
+}
+
+/* Ensure no scrollbars interfere */
+.tui-image-editor-main-container {
+    background-color: #f4f4f4 !important;
+    /* Canva-like background */
+}
+
+/* --- Mobile Responsiveness --- */
+@media screen and (max-width: 768px) {
+    .editor-app {
+        min-height: auto;
+        /* Let content dictate height */
+    }
+
+    .editor-header {
+        flex-direction: column;
+        height: auto;
+        padding: 15px;
+        gap: 10px;
+    }
+
+    .editor-logo {
+        height: 25px !important;
+        margin-bottom: 5px !important;
+    }
+
+    .editor-title {
+        font-size: 1rem;
+    }
+
+    .editor-workspace {
+        height: 80vh;
+        /* Use viewport height on mobile to maximize space */
+    }
+
+    /* TUI Overrides for Mobile */
+    .tui-image-editor-container .tui-image-editor-header {
+        display: none !important;
+        /* Hide TUI internal header to save space */
+    }
+
+    .tui-image-editor-container .tui-image-editor-main {
+        top: 0 !important;
+        /* Move canvas up since header is gone */
+    }
+
+    /* Make submenu scrollable horizontally */
+    .tui-image-editor-submenu {
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        white-space: nowrap !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .tui-image-editor-submenu-item {
+        display: inline-block !important;
+        float: none !important;
+    }
+
+    /* Stack controls/menus better */
+    .tui-image-editor-menu {
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+    }
+
+    .tui-image-editor-item {
+        display: inline-block !important;
+    }
+}
