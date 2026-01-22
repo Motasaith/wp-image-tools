@@ -10,7 +10,7 @@ body {
     padding: 0;
 }
 
-.meme-app {
+.sharpen-app {
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
@@ -18,25 +18,25 @@ body {
     /* Clear fixed header */
 }
 
-.meme-header {
+.sharpen-header {
     text-align: center;
     margin-bottom: 2rem;
 }
 
-.meme-title {
+.sharpen-title {
     font-size: 2.5rem;
     color: #333;
     margin-bottom: 0.5rem;
     font-weight: 700;
 }
 
-.meme-subtitle {
+.sharpen-subtitle {
     color: #666;
     font-size: 1.1rem;
 }
 
 /* Workspace Layout */
-.meme-workspace {
+.sharpen-workspace {
     display: flex;
     background: #fff;
     border-radius: 12px;
@@ -46,74 +46,13 @@ body {
 }
 
 /* Controls (Left) */
-.meme-controls {
+.sharpen-controls {
     width: 350px;
     background: #f9f9f9;
     padding: 2rem;
     border-right: 1px solid #eee;
     display: flex;
     flex-direction: column;
-}
-
-/* Tabs */
-.meme-tabs {
-    display: flex;
-    margin-bottom: 1.5rem;
-    background: #e0e0e0;
-    border-radius: 8px;
-    padding: 4px;
-}
-
-.tab-btn {
-    flex: 1;
-    border: none;
-    background: none;
-    padding: 10px;
-    cursor: pointer;
-    border-radius: 6px;
-    font-weight: 600;
-    color: #555;
-    transition: all 0.2s;
-}
-
-.tab-btn.active {
-    background: #fff;
-    color: #007bff;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
-
-.tab-content {
-    display: none;
-    margin-bottom: 1rem;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-/* Template Grid */
-.template-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    max-height: 200px;
-    /* Scrollable area */
-    overflow-y: auto;
-    padding-right: 5px;
-}
-
-.template-thumb {
-    width: 100%;
-    border-radius: 6px;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: border 0.2s;
-}
-
-.template-thumb:hover,
-.template-thumb.selected {
-    border-color: #007bff;
-    opacity: 0.8;
 }
 
 /* Upload Area */
@@ -124,6 +63,18 @@ body {
     text-align: center;
     color: #666;
     background: #fff;
+    transition: all 0.2s;
+}
+
+.upload-area:hover,
+.upload-area.dragover {
+    border-color: #007bff;
+    background: #f0f7ff;
+}
+
+.upload-icon {
+    color: #007bff;
+    margin-bottom: 1rem;
 }
 
 .upload-area input[type="file"] {
@@ -139,50 +90,66 @@ body {
     cursor: pointer;
     margin-top: 10px;
     font-weight: 500;
+    transition: background 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #d0d0d0;
 }
 
 .divider {
     border: 0;
     border-top: 1px solid #ddd;
-    margin: 1.5rem 0;
+    margin: 2rem 0;
 }
 
-/* Inputs */
+/* Sliders */
 .control-group {
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
 }
 
-.control-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
+.slider-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
+    font-weight: 600;
     color: #333;
 }
 
-.text-input {
+.range-slider {
     width: 100%;
-    padding: 0.8rem;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-family: inherit;
-    font-size: 1rem;
+    -webkit-appearance: none;
+    height: 6px;
+    background: #ddd;
+    border-radius: 5px;
+    outline: none;
 }
 
-.control-group-row {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+.range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #007bff;
+    cursor: pointer;
+    transition: background .15s ease-in-out;
 }
 
-.half {
-    flex: 1;
+.range-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border: 0;
+    border-radius: 50%;
+    background: #007bff;
+    cursor: pointer;
+    transition: background .15s ease-in-out;
 }
 
-.half input {
-    width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 6px;
+.help-text {
+    font-size: 0.85rem;
+    color: #888;
+    margin-top: 0.5rem;
 }
 
 /* Download Button */
@@ -204,11 +171,15 @@ body {
     background: #0056b3;
 }
 
+.btn-primary:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
 /* Preview Area (Right) */
-.meme-preview {
+.sharpen-preview {
     flex: 1;
     background: #333;
-    /* Dark background to make canvas pop */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -217,19 +188,18 @@ body {
     overflow: hidden;
 }
 
-.canvas-container {
+.canvas-wrapper {
+    position: relative;
     max-width: 100%;
     max-height: 100%;
-    position: relative;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
-#meme-canvas {
+#main-canvas {
     display: block;
     max-width: 100%;
     max-height: 500px;
     background: #fff;
-    /* White bg for transp images */
 }
 
 #placeholder-msg {
@@ -243,47 +213,54 @@ body {
     pointer-events: none;
 }
 
+.btn-floating {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px 20px;
+    border-radius: 30px;
+    border: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
+    user-select: none;
+}
+
+.btn-floating:active {
+    transform: translateX(-50%) scale(0.95);
+}
+
+.compare-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
-    .meme-workspace {
+    .sharpen-workspace {
         flex-direction: column-reverse;
-        /* Controls below preview on mobile */
     }
 
-    .meme-controls {
+    .sharpen-controls {
         width: 100%;
         border-right: none;
         border-top: 1px solid #eee;
     }
 
-    .meme-preview {
-        min-height: 300px;
-        padding: 1rem;
-    }
-
-    #meme-canvas {
+    #main-canvas {
         max-height: 300px;
     }
-}
-
-/* Dynamic Text Controls */
-#text-editor {
-    transition: all 0.3s ease;
-}
-
-#text-editor textarea {
-    resize: vertical;
-    min-height: 60px;
-}
-
-.btn-danger {
-    transition: background 0.2s;
-}
-
-.btn-danger:hover {
-    background-color: #ff2e43 !important;
-}
-
-.btn-secondary:hover {
-    background-color: #0069d9 !important;
 }

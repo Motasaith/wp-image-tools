@@ -163,9 +163,9 @@ $hub_url = get_stylesheet_directory_uri() . '/image-tools-hub';
                      <span class="tool-btn">Clean</span>
                 </a> -->
 
+
                 <!-- 11. Meme generator -->
-                <!-- 11. Meme generator -->
-                <a href="/meme-generator-tool" class="tool-card" data-category="create">
+                <a href="/free-meme-generator-tool-online" class="tool-card" data-category="create">
                     <div class="card-header">
                         <div class="brand-icon">
                             <img src="<?php echo $hub_url; ?>/SVG/meme_generator.svg" alt="Meme generator"
@@ -200,6 +200,23 @@ $hub_url = get_stylesheet_directory_uri() . '/image-tools-hub';
                     </div>
                     <p class="card-desc">Convert webpages to high-quality images.</p>
                     <span class="tool-btn">Convert</span>
+                </a>
+
+                <!-- 14. Image Sharpen -->
+                <a href="/free-image-sharpen-tool-online" class="tool-card" data-category="edit">
+                    <div class="card-header">
+                        <div class="brand-icon">
+                            <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="#007bff"
+                                stroke-width="2" style="display:block; margin:auto;">
+                                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                                <polyline points="2 17 12 22 22 17"></polyline>
+                                <polyline points="2 12 12 17 22 12"></polyline>
+                            </svg>
+                        </div>
+                        <h3 class="card-title">Image Sharpen</h3>
+                    </div>
+                    <p class="card-desc">Enhance photo details and clarity instantly.</p>
+                    <span class="tool-btn">Sharpen</span>
                 </a>
 
                 <!-- 14. Blur face -->
