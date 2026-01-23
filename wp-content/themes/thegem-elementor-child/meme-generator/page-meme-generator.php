@@ -114,6 +114,9 @@ $assets_url = get_stylesheet_directory_uri() . '/meme-generator';
 
             <button id="download-btn" class="btn-primary">Download Meme</button>
 
+            <!-- More Tools Sidebar -->
+            <?php get_template_part('sidebar-tools'); ?>
+
         </aside>
 
         <!-- Right: Preview -->

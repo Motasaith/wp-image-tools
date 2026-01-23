@@ -86,6 +86,9 @@ $assets_url = get_stylesheet_directory_uri() . '/html-to-image';
                 <button class="btn-primary" id="download-btn" disabled>Download Image</button>
             </div>
 
+            <!-- More Tools Sidebar -->
+            <?php get_template_part('sidebar-tools'); ?>
+
         </aside>
 
     </div>

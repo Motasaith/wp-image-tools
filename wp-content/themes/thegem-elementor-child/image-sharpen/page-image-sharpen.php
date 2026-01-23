@@ -62,6 +62,9 @@ $assets_url = get_stylesheet_directory_uri() . '/image-sharpen';
                 <button id="download-btn" class="btn-primary" disabled>Download Image</button>
             </div>
 
+            <!-- More Tools Sidebar -->
+            <?php get_template_part('sidebar-tools'); ?>
+
         </aside>
 
         <!-- Preview (Right) -->
