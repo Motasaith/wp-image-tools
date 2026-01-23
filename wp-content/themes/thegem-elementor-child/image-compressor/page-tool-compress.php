@@ -22,11 +22,11 @@ $assets_url = get_stylesheet_directory_uri() . '/image-compressor';
 
     <!-- Header -->
     <header class="resizer-header">
-        <a href="/" class="site-logo-link">
+        <!-- <a href="/" class="site-logo-link">
             <img src="<?php echo get_theme_file_uri('/image-resizer/logo.png'); ?>" alt="UpscaleIMG"
                 class="resizer-logo"
                 style="display: block; margin: 0 auto 1.5rem auto; max-width: 300px; height: auto;">
-        </a>
+        </a> -->
         <h1 class="resizer-title">Free Image Compressor</h1>
         <p class="resizer-subtitle">Reduce file size while maintaining the best possible quality.</p>
     </header>
@@ -108,6 +108,7 @@ $assets_url = get_stylesheet_directory_uri() . '/image-compressor';
 <!-- Libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <!-- Logic Script -->
+<script src="<?php echo get_stylesheet_directory_uri(); ?>/transfer-manager.js?v=<?php echo time(); ?>"></script>
 <script src="<?php echo $assets_url; ?>/script.js?v=<?php echo time(); ?>"></script>
 
 <?php get_footer(); ?>

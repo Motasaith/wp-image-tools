@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const processBtn = document.getElementById('process-btn');
 
     // State
-    let fileQueue = []; 
+    let fileQueue = [];
     // Item Structure: { id, file, src, originalSize, compressedSize, blob, status, targetQuality, targetFormat, ext }
     let activeIndex = -1;
 
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ext: null
             });
         }
-        
+
         // Select the first new item if none selected
         if (activeIndex === -1 && fileQueue.length > 0) {
             setActiveItem(0);
@@ -56,13 +56,13 @@ document.addEventListener('DOMContentLoaded', () => {
     window.setActiveItem = (index) => {
         if (index < 0 || index >= fileQueue.length) return;
         activeIndex = index;
-        
+
         const item = fileQueue[index];
-        
+
         // Update Controls to match this item's settings
         formatSelect.value = item.targetFormat;
-        
-        updateUI(); 
+
+        updateUI();
     };
 
     // --- UI Updates ---
@@ -71,11 +71,11 @@ document.addEventListener('DOMContentLoaded', () => {
             uploadScreen.style.display = 'none';
             fileListDiv.style.display = 'block';
         } else {
-            uploadScreen.style.display = 'flex'; 
+            uploadScreen.style.display = 'flex';
             fileListDiv.style.display = 'none';
         }
         renderQueue();
-        
+
         // Update Button Text
         const allDone = fileQueue.length > 0 && fileQueue.every(i => i.status === 'done');
         if (fileQueue.length === 0) processBtn.innerText = "Convert Images";
@@ -87,16 +87,16 @@ document.addEventListener('DOMContentLoaded', () => {
         fileQueue.forEach((item, index) => {
             const isActive = (index === activeIndex);
             const row = document.createElement('div');
-            
+
             // Style: Highlight active row
             let borderStyle = isActive ? '2px solid var(--brand-blue)' : '1px solid #eee';
             let bgStyle = isActive ? '#f8f9ff' : '#fff';
 
             row.style.cssText = `background: ${bgStyle}; padding: 15px; border-radius: 8px; border: ${borderStyle}; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.2s;`;
             row.onclick = (e) => {
-                if (!e.target.closest('.remove-btn')) setActiveItem(index); 
+                if (!e.target.closest('.remove-btn')) setActiveItem(index);
             };
-            
+
             const sizeStr = formatBytes(item.originalSize);
             let statusHtml = '';
 
@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="remove-btn" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #ccc;">&times;</button>
                 </div>
             `;
-            
+
             // Attach event listener with stopPropagation to avoid triggering row select
             const removeBtn = row.querySelector('.remove-btn');
             removeBtn.addEventListener('click', (e) => {
@@ -151,11 +151,11 @@ document.addEventListener('DOMContentLoaded', () => {
         addBtnDiv.innerHTML = `<button onclick="document.getElementById('file-input').click()" style="background: #f0f0f0; border: 1px dashed #ccc; color: #555; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">+ Ad More Files</button>`;
         fileListDiv.appendChild(addBtnDiv);
     }
-    
+
     // ... removeItem, setActiveItem need minor tweaks if any ... Is Active Item updating Slider? 
     // We removed Slider from UI, so we should remove it from selection logic or just ignore errors.
-    
-    window.updateStats = () => {}; // No Global Stats for Converter
+
+    window.updateStats = () => { }; // No Global Stats for Converter
 
     // --- Controls ---
     // No Quality Slider logic needed.
@@ -163,12 +163,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update ONLY Active Item (User requested individual control)
     formatSelect.addEventListener('change', (e) => {
         const val = e.target.value;
-        
+
         // Update Active Item
         if (activeIndex !== -1) {
             fileQueue[activeIndex].targetFormat = val;
-             if (fileQueue[activeIndex].status === 'done') {
-                 fileQueue[activeIndex].status = 'pending';
+            if (fileQueue[activeIndex].status === 'done') {
+                fileQueue[activeIndex].status = 'pending';
             }
             updateUI();
         }
@@ -177,25 +177,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Processing ---
     processBtn.addEventListener('click', async () => {
         if (fileQueue.length === 0) return;
-        
+
         const pendingItems = fileQueue.filter(i => i.status !== 'done');
-        
+
         if (pendingItems.length === 0) {
             await downloadAll();
         } else {
             processBtn.innerText = "Processing...";
             processBtn.disabled = true;
-            
+
             for (let i = 0; i < fileQueue.length; i++) {
                 if (fileQueue[i].status !== 'done') {
                     fileQueue[i].status = 'processing';
                     updateUI();
-                    
+
                     try {
                         // Use ITEM-SPECIFIC settings
                         const q = 0.92; // Fixed High Quality
                         const f = fileQueue[i].targetFormat;
-                        
+
                         const result = await compressImage(fileQueue[i].file, q, f);
                         fileQueue[i].blob = result.blob;
                         fileQueue[i].compressedSize = result.size;
@@ -222,29 +222,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     canvas.width = img.width;
                     canvas.height = img.height;
                     const ctx = canvas.getContext('2d');
-                    
+
                     // Handle Transparency for JPEG
                     let mime = targetFormat;
                     if (mime === 'original') mime = file.type;
-                    
+
                     if (mime === 'image/jpeg') {
                         ctx.fillStyle = '#FFFFFF';
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                     }
-                    
+
                     ctx.drawImage(img, 0, 0);
-                    
+
                     let ext = 'jpg';
                     if (mime === 'image/png') ext = 'png';
                     if (mime === 'image/webp') ext = 'webp';
-                    
+
                     // Normalize extensions
                     if (targetFormat === 'original') {
-                         if (file.type === 'image/png') ext = 'png';
-                         if (file.type === 'image/jpeg') ext = 'jpg';
-                         if (file.type === 'image/webp') ext = 'webp';
+                        if (file.type === 'image/png') ext = 'png';
+                        if (file.type === 'image/jpeg') ext = 'jpg';
+                        if (file.type === 'image/webp') ext = 'webp';
                     }
-                    
+
                     canvas.toBlob((blob) => {
                         resolve({
                             blob: blob,
@@ -270,12 +270,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const name = item.file.name.split('.')[0];
                 zip.file(`${name}_converted.${item.ext}`, item.blob);
             });
-            
-            const content = await zip.generateAsync({type:"blob"});
+
+            const content = await zip.generateAsync({ type: "blob" });
             saveAs(content, "converted_images.zip");
         }
     }
-    
+
     function saveAs(blob, filename) {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
@@ -292,6 +292,54 @@ document.addEventListener('DOMContentLoaded', () => {
         const sizes = ['B', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    }
+
+    // --- Transfer Manager Integration ---
+    if (window.transferManager) {
+        // 1. Auto-Load
+        transferManager.getImage().then(data => {
+            if (data && data.blob) {
+                const file = new File([data.blob], data.filename || "transfer_image.png", { type: data.blob.type });
+                handleFiles([file]);
+                transferManager.clearImage();
+            }
+        });
+
+        // 2. Intercept Sidebar
+        const toolLinks = document.querySelectorAll('.tools-list a');
+        toolLinks.forEach(link => {
+            link.addEventListener('click', async (e) => {
+                if (fileQueue.length > 0) {
+                    let targetIndex = activeIndex !== -1 ? activeIndex : 0;
+                    if (targetIndex >= fileQueue.length) targetIndex = 0;
+
+                    const item = fileQueue[targetIndex];
+                    if (!item) return;
+
+                    e.preventDefault();
+                    link.innerHTML = '⏳ Saving...';
+                    const originalHref = link.href;
+
+                    try {
+                        let blobToSave = item.blob;
+                        let nameToSave = 'converted_' + item.file.name;
+
+                        if (!blobToSave && item.file) {
+                            blobToSave = item.file;
+                            nameToSave = item.file.name;
+                        }
+
+                        if (!blobToSave) throw new Error("No image data found");
+
+                        await transferManager.saveImage(blobToSave, nameToSave);
+                        window.location.href = originalHref;
+                    } catch (err) {
+                        console.error("Transfer failed", err);
+                        window.location.href = originalHref;
+                    }
+                }
+            });
+        });
     }
 
 });

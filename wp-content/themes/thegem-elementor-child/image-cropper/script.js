@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // State
     let fileQueue = [];
     let activeIndex = 0;
-    
+
     // Crop State
     let cropX = 0; // Relative to editorBox (px)
     let cropY = 0;
@@ -22,13 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let cropH = 0;
     let imgNaturalW = 0;
     let imgNaturalH = 0;
-    
+
     let isDragging = false;
     let isResizing = false;
     let activeHandle = null;
     let startX, startY;
     let startCropX, startCropY, startCropW, startCropH;
-    
+
     let aspectLocked = false;
     let targetRatio = null; // number or null
 
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const thumb = document.createElement('div');
             thumb.className = `queue-item ${index === activeIndex ? 'active' : ''}`;
             thumb.onclick = (e) => { if (e.target.closest('.queue-remove')) return; setActiveImage(index); };
-            
+
             const img = document.createElement('img');
             img.src = item.src;
             const removeBtn = document.createElement('div');
@@ -107,12 +107,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- State Persistence Helper ---
     function saveCurrentState() {
         if (!fileQueue[activeIndex]) return;
-        
+
         // Save RELATIVE coordinates (0-1) so they work if editor size changes slightly
         const item = fileQueue[activeIndex];
         const boxW = editorBox.clientWidth;
         const boxH = editorBox.clientHeight;
-        
+
         if (boxW > 0 && boxH > 0) {
             item.cropState = {
                 rx: cropX / boxW,
@@ -131,11 +131,11 @@ document.addEventListener('DOMContentLoaded', () => {
         updateQueueUI();
         setActiveImage(activeIndex);
     }
-    
+
     function setActiveImage(index) {
         // Save previous state before switching
         saveCurrentState();
-        
+
         activeIndex = index;
         const item = fileQueue[index];
         if (!item) return;
@@ -143,20 +143,20 @@ document.addEventListener('DOMContentLoaded', () => {
         imgNaturalW = item.originalW;
         imgNaturalH = item.originalH;
         targetImage.src = item.src;
-        
+
         document.querySelectorAll('.queue-item').forEach((el, i) => el.classList.toggle('active', i === index));
-        
+
         // Timeout to allow image paint, then layout
         setTimeout(() => {
             updateEditorLayout();
-            
+
             // Restore State or Init
             restoreCropState(item);
-            
+
             updateGrid();
         }, 50);
     }
-    
+
     function restoreCropState(item) {
         const boxW = editorBox.clientWidth;
         const boxH = editorBox.clientHeight;
@@ -167,11 +167,11 @@ document.addEventListener('DOMContentLoaded', () => {
             cropY = item.cropState.ry * boxH;
             cropW = item.cropState.rw * boxW;
             cropH = item.cropState.rh * boxH;
-            
+
             // Sanity check bounds
             if (cropW > boxW) cropW = boxW;
             if (cropH > boxH) cropH = boxH;
-            
+
             renderCropBox();
         } else {
             // No state? Init
@@ -183,17 +183,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Layout / Visualizer ---
     function updateEditorLayout() {
         if (!imgNaturalW) return;
-        
+
         const container = document.querySelector('.canvas-container');
         // Use 85% of container size to provide ample negative space (Adobe-like feel)
         const availW = (container.clientWidth || 600) * 0.85;
         const availH = (container.clientHeight || 400) * 0.85;
-        
+
         // Calculate Scale Factor
         // Use Math.min to find the "Contain" scale.
         // Cap at 1.0 to PREVENT UPSCALING (User Feedback: "image not so big")
         let scale = Math.min(availW / imgNaturalW, availH / imgNaturalH);
-        
+
         // If image is smaller than container, show at 100% natural size.
         if (scale > 1) scale = 1;
 
@@ -210,16 +210,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function initCropBox() {
         const boxW = editorBox.clientWidth;
         const boxH = editorBox.clientHeight;
-        
+
         // Default: Full coverage (minus slight margin for visibility of handles)
         cropW = boxW;
         cropH = boxH;
-        
+
         // If ratio selected, force it while MAXIMIZING size
         if (aspectLocked && targetRatio) {
             // Check if current Full Box is wider or taller than target ratio relative to box
             const boxRatio = boxW / boxH;
-            
+
             if (boxRatio > targetRatio) {
                 // Box is wider than target -> Limit Width, Height = Full
                 cropH = boxH;
@@ -229,26 +229,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 cropW = boxW;
                 cropH = cropW / targetRatio;
             }
-            
+
             // Apply slight inset (95%) so it doesn't touch edges exactl? 
             // Actually users prefer maximizing. Let's keep 100% fit for Ratio, 
             // but for Free, let's do 98%?
             cropW *= 0.98;
             cropH *= 0.98;
         }
-        
+
         cropX = (boxW - cropW) / 2;
         cropY = (boxH - cropH) / 2;
         renderCropBox();
     }
-    
+
     function renderCropBox() {
         cropOverlay.style.left = cropX + 'px';
         cropOverlay.style.top = cropY + 'px';
         cropOverlay.style.width = cropW + 'px';
         cropOverlay.style.height = cropH + 'px';
     }
-    
+
     function updateGrid() {
         // Find existing grid or create
         let grid = cropOverlay.querySelector('.crop-grid');
@@ -264,56 +264,56 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             isDragging = true;
         }
-        
+
         startX = e.clientX;
         startY = e.clientY;
         startCropX = cropX;
         startCropY = cropY;
         startCropW = cropW;
         startCropH = cropH;
-        
+
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
         e.preventDefault();
     });
-    
+
     function onMouseMove(e) {
         const dx = e.clientX - startX;
         const dy = e.clientY - startY;
-        
+
         const maxW = editorBox.clientWidth;
         const maxH = editorBox.clientHeight;
 
         if (isDragging) {
             let newX = startCropX + dx;
             let newY = startCropY + dy;
-            
+
             // Constrain
             newX = Math.max(0, Math.min(newX, maxW - cropW));
             newY = Math.max(0, Math.min(newY, maxH - cropH));
-            
+
             cropX = newX;
             cropY = newY;
-            
+
         } else if (isResizing) {
             let newW = startCropW;
             let newH = startCropH;
             let newX = startCropX;
             let newY = startCropY;
-            
+
             if (activeHandle === 'tr' || activeHandle === 'br') newW = startCropW + dx;
             if (activeHandle === 'tl' || activeHandle === 'bl') {
                 newW = startCropW - dx;
-                newX = startCropX + dx; 
+                newX = startCropX + dx;
             }
             if (activeHandle === 'bl' || activeHandle === 'br') newH = startCropH + dy;
             if (activeHandle === 'tl' || activeHandle === 'tr') {
                 newH = startCropH - dy;
                 newY = startCropY + dy;
             }
-            
+
             // Min Size
-            if (newW < 50) { newW = 50; newX = cropX; } 
+            if (newW < 50) { newW = 50; newX = cropX; }
             if (newH < 50) { newH = 50; newY = cropY; }
 
             // Aspect Lock
@@ -332,39 +332,39 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Let's stick to standard resize logic where X/Y are set, then H is forced.
                 }
             }
-            
+
             // Constrain to container
             if (newX < 0) { newW += newX; newX = 0; }
             if (newY < 0) { newH += newY; newY = 0; }
-            
+
             if (newX + newW > maxW) newW = maxW - newX;
             if (newY + newH > maxH) newH = maxH - newY;
-            
+
             // Re-apply lock if constraint broke it?
-             if (aspectLocked && targetRatio) {
-                 if (newW / newH !== targetRatio || newH > maxH) {
-                      // Simple Force
-                      newH = newW / targetRatio;
-                      if (newH > maxH) { newH = maxH; newW = newH * targetRatio; }
-                 }
-             }
+            if (aspectLocked && targetRatio) {
+                if (newW / newH !== targetRatio || newH > maxH) {
+                    // Simple Force
+                    newH = newW / targetRatio;
+                    if (newH > maxH) { newH = maxH; newW = newH * targetRatio; }
+                }
+            }
 
             cropX = newX;
             cropY = newY;
             cropW = newW;
             cropH = newH;
         }
-        
+
         renderCropBox();
     }
-    
+
     function onMouseUp() {
         isDragging = false;
         isResizing = false;
         document.removeEventListener('mousemove', onMouseMove);
         document.removeEventListener('mouseup', onMouseUp);
     }
-    
+
     // --- Ratio Select ---
     ratioSelect.addEventListener('change', (e) => {
         const val = e.target.value;
@@ -388,9 +388,9 @@ document.addEventListener('DOMContentLoaded', () => {
     downloadBtn.addEventListener('click', async () => {
         if (fileQueue.length === 0) return;
         saveCurrentState(); // Save current before processing
-        
+
         downloadBtn.innerText = 'Processing...';
-        
+
         if (fileQueue.length === 1) {
             await processDownload(fileQueue[0]);
         } else {
@@ -398,10 +398,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         updateDownloadBtn();
     });
-    
+
     async function processBatchDownload() {
         const zip = new JSZip();
-        
+
         for (let i = 0; i < fileQueue.length; i++) {
             const item = fileQueue[i];
             const blob = await generateCropBlob(item);
@@ -411,8 +411,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 zip.file(`${cleanName}_cropped.${ext}`, blob);
             }
         }
-        
-        zip.generateAsync({type:"blob"}).then(function(content) {
+
+        zip.generateAsync({ type: "blob" }).then(function (content) {
             const a = document.createElement('a');
             a.href = URL.createObjectURL(content);
             a.download = "cropped_images.zip";
@@ -427,10 +427,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Logic to calculate crop. Note: We need to know THE SCALE at which the crop was defined.
             // Problem: cropState is RELATIVE (rx, ry, rw, rh).
             // So we can calculate directly from original dimensions!
-            
+
             // If cropState exists, use it. If not, use Default (Full/Centered).
             let cx, cy, cw, ch;
-            
+
             if (item.cropState) {
                 cx = item.cropState.rx * item.originalW;
                 cy = item.cropState.ry * item.originalH;
@@ -450,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
             canvas.width = cw;
             canvas.height = ch;
             const ctx = canvas.getContext('2d');
-            
+
             const img = new Image();
             img.onload = () => {
                 ctx.drawImage(img, cx, cy, cw, ch, 0, 0, cw, ch);
@@ -459,7 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
             img.src = item.src;
         });
     }
-    
+
     // Legacy single download wrapper
     async function processDownload(item) {
         const blob = await generateCropBlob(item);
@@ -471,6 +471,48 @@ document.addEventListener('DOMContentLoaded', () => {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    }
+
+    // --- Transfer Manager Integration ---
+    if (window.transferManager) {
+        // 1. Auto-Load
+        transferManager.getImage().then(data => {
+            if (data && data.blob) {
+                const file = new File([data.blob], data.filename || "transfer_image.png", { type: data.blob.type });
+                handleFiles([file]);
+                transferManager.clearImage();
+            }
+        });
+
+        // 2. Intercept Sidebar
+        const toolLinks = document.querySelectorAll('.tools-list a');
+        toolLinks.forEach(link => {
+            link.addEventListener('click', async (e) => {
+                if (fileQueue.length > 0) {
+                    let targetIndex = activeIndex !== -1 ? activeIndex : 0;
+                    if (targetIndex >= fileQueue.length) targetIndex = 0;
+
+                    const item = fileQueue[targetIndex];
+                    if (!item) return;
+
+                    e.preventDefault();
+                    link.innerHTML = '⏳ Saving...';
+                    const originalHref = link.href;
+
+                    try {
+                        // Generate Cropped Blob
+                        const blob = await generateCropBlob(item);
+                        const nameToSave = 'cropped_' + item.file.name;
+
+                        await transferManager.saveImage(blob, nameToSave);
+                        window.location.href = originalHref;
+                    } catch (err) {
+                        console.error("Transfer failed", err);
+                        window.location.href = originalHref;
+                    }
+                }
+            });
+        });
     }
 
 });

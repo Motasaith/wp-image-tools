@@ -22,12 +22,12 @@ $assets_url = get_stylesheet_directory_uri() . '/image-resizer';
 
     <!-- Header -->
     <header class="resizer-header">
-        <a href="/" class="site-logo-link">
-            <!-- Using get_theme_file_uri for better child theme support -->
-            <img src="<?php echo get_theme_file_uri('/image-resizer/logo.png'); ?>?v=<?php echo time(); ?>"
+        <!-- <a href="/" class="site-logo-link"> -->
+        <!-- Using get_theme_file_uri for better child theme support -->
+        <!-- <img src="<?php echo get_theme_file_uri('/image-resizer/logo.png'); ?>?v=<?php echo time(); ?>"
                 alt="UpscaleIMG" class="resizer-logo"
                 style="display: block; margin: 0 auto 1.5rem auto; max-width: 300px; height: auto;">
-        </a>
+        </a> -->
         <h1 class="resizer-title">Free Image Resizer</h1>
         <p class="resizer-subtitle">Easily resize your images for social media, print, and web.</p>
     </header>
@@ -169,6 +169,7 @@ $assets_url = get_stylesheet_directory_uri() . '/image-resizer';
 <!-- Libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <!-- Logic Script -->
+<script src="<?php echo get_stylesheet_directory_uri(); ?>/transfer-manager.js?v=<?php echo time(); ?>"></script>
 <script src="<?php echo $assets_url; ?>/script.js?ver=<?php echo filemtime(__DIR__ . '/script.js'); ?>"></script>
 
 <?php get_footer(); ?>

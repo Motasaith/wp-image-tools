@@ -159,4 +159,46 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
     });
 
+    // --- Transfer Manager Integration ---
+    if (window.transferManager) {
+        // 1. Auto-Load
+        transferManager.getImage().then(data => {
+            if (data && data.blob) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    loadImage(e.target.result);
+                };
+                reader.readAsDataURL(data.blob);
+                transferManager.clearImage();
+            }
+        });
+
+        // 2. Intercept Sidebar
+        const toolLinks = document.querySelectorAll('.tools-list a');
+        toolLinks.forEach(link => {
+            link.addEventListener('click', async (e) => {
+                if (originalImageData) {
+                    e.preventDefault();
+                    link.innerHTML = '⏳ Saving...';
+                    const originalHref = link.href;
+
+                    try {
+                        // Generate Sharpened Blob
+                        canvas.toBlob(async (blob) => {
+                            if (blob) {
+                                await transferManager.saveImage(blob, 'sharpened_' + Date.now() + '.png');
+                                window.location.href = originalHref;
+                            } else {
+                                window.location.href = originalHref;
+                            }
+                        }, 'image/png');
+                    } catch (err) {
+                        console.error("Transfer failed", err);
+                        window.location.href = originalHref;
+                    }
+                }
+            });
+        });
+    }
+
 });

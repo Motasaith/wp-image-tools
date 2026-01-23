@@ -132,6 +132,7 @@ $assets_url = get_stylesheet_directory_uri() . '/meme-generator';
 </div>
 
 <!-- Logic Script -->
+<script src="<?php echo get_stylesheet_directory_uri(); ?>/transfer-manager.js?v=<?php echo time(); ?>"></script>
 <script src="<?php echo $assets_url; ?>/script.js?v=<?php echo time(); ?>"></script>
 
 <?php get_footer(); ?>

@@ -409,4 +409,49 @@ document.addEventListener('DOMContentLoaded', () => {
         renderMeme();
     });
 
+    // --- Transfer Manager Integration ---
+    if (window.transferManager) {
+        // 1. Auto-Load
+        transferManager.getImage().then(data => {
+            if (data && data.blob) {
+                // Meme Gen needs Data URL for loadImage
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    // We load it as if it were a file upload
+                    loadImage(e.target.result);
+                };
+                reader.readAsDataURL(data.blob);
+                transferManager.clearImage();
+            }
+        });
+
+        // 2. Intercept Sidebar
+        const toolLinks = document.querySelectorAll('.tools-list a');
+        toolLinks.forEach(link => {
+            link.addEventListener('click', async (e) => {
+                // If we have an image loaded, ask to transfer
+                if (currentImage) {
+                    e.preventDefault();
+                    link.innerHTML = '⏳ Saving...';
+                    const originalHref = link.href;
+
+                    try {
+                        // Generate Meme Blob
+                        canvas.toBlob(async (blob) => {
+                            if (blob) {
+                                await transferManager.saveImage(blob, 'meme_' + Date.now() + '.png');
+                                window.location.href = originalHref;
+                            } else {
+                                window.location.href = originalHref;
+                            }
+                        }, 'image/png');
+                    } catch (err) {
+                        console.error("Transfer failed", err);
+                        window.location.href = originalHref;
+                    }
+                }
+            });
+        });
+    }
+
 });
