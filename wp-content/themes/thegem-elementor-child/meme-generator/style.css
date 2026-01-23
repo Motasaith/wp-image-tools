@@ -233,7 +233,7 @@ body {
     color: #fff;
     border: none;
     border-radius: 50px;
-    font-size: 1.1rem;
+    /* font-size: 1.1rem; */
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s;
