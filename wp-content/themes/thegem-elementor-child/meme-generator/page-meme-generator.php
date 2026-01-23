@@ -42,24 +42,19 @@ $assets_url = get_stylesheet_directory_uri() . '/meme-generator';
 
             <!-- Tab Content: Templates -->
             <div id="tab-templates" class="tab-content active">
-                <div class="template-grid">
-                    <!-- Popular Templates -->
-                    <img src="https://i.imgflip.com/30b1gx.jpg" class="template-thumb" alt="Drake Hotline Bling"
-                        crossorigin="anonymous">
-                    <img src="https://i.imgflip.com/1ur9b0.jpg" class="template-thumb" alt="Distracted Boyfriend"
-                        crossorigin="anonymous">
-                    <img src="https://i.imgflip.com/1g8my4.jpg" class="template-thumb" alt="Two Buttons"
-                        crossorigin="anonymous">
-                    <img src="https://i.imgflip.com/24y43o.jpg" class="template-thumb" alt="Change My Mind"
-                        crossorigin="anonymous">
-                    <img src="https://i.imgflip.com/1otk96.jpg" class="template-thumb" alt="Mocking Spongebob"
-                        crossorigin="anonymous">
-                    <img src="https://i.imgflip.com/1h7in3.jpg" class="template-thumb" alt="Smart Guy"
-                        crossorigin="anonymous">
-                    <img src="https://i.imgflip.com/261o3j.jpg" class="template-thumb" alt="Bernie"
-                        crossorigin="anonymous">
-                    <img src="https://i.imgflip.com/1jwhww.jpg" class="template-thumb" alt="Woman Yelling At Cat"
-                        crossorigin="anonymous">
+
+                <!-- Category Filters -->
+                <div class="filter-chips">
+                    <button class="chip active" data-category="all">All</button>
+                    <button class="chip" data-category="trending">Trending</button>
+                    <button class="chip" data-category="classic">Classic</button>
+                    <button class="chip" data-category="animals">Animals</button>
+                    <button class="chip" data-category="movies">Movies/TV</button>
+                    <button class="chip" data-category="gaming">Gaming</button>
+                </div>
+
+                <div class="template-grid" id="template-grid">
+                    <!-- Templates will be loaded here via JS -->
                 </div>
             </div>
 

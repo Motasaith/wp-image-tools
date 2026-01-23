@@ -4,11 +4,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctx = canvas.getContext('2d');
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
-    const templateThumbs = document.querySelectorAll('.template-thumb');
     const fileInput = document.getElementById('image-upload');
     const dropZone = document.getElementById('drop-zone');
     const placeholderMsg = document.getElementById('placeholder-msg');
     const downloadBtn = document.getElementById('download-btn');
+
+    // Filter Elements
+    const chipBtns = document.querySelectorAll('.chip');
+    const templateGrid = document.getElementById('template-grid');
 
     // Text Controls
     const addTextBtn = document.getElementById('add-text-btn');
@@ -21,6 +24,107 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeFontSizeInput = document.getElementById('active-font-size');
     const activeTextColorInput = document.getElementById('active-text-color');
     const activeStrokeColorInput = document.getElementById('active-stroke-color');
+
+    // --- Template Data (Top popular memes) ---
+    const MEME_TEMPLATES = [
+        // Trending/Popular (Mixed)
+        { id: '181913649', name: 'Drake Hotline Bling', url: 'https://i.imgflip.com/30b1gx.jpg', category: 'trending' },
+        // { id: '112126428', name: 'Distracted Boyfriend', url: 'https://i.imgflip.com/1ur9b0.jpg', category: 'trending' },
+        { id: '87743020', name: 'Two Buttons', url: 'https://i.imgflip.com/1g8my4.jpg', category: 'trending' },
+        { id: '129242436', name: 'Change My Mind', url: 'https://i.imgflip.com/24y43o.jpg', category: 'trending' },
+        { id: '102156234', name: 'Mocking Spongebob', url: 'https://i.imgflip.com/1otk96.jpg', category: 'trending' },
+        { id: '188713515', name: 'Woman Yelling At Cat', url: 'https://i.imgflip.com/1jwhww.jpg', category: 'animals' },
+        { id: '217743513', name: 'Uno Draw 25 Cards', url: 'https://i.imgflip.com/3lmzyx.jpg', category: 'gaming' },
+        { id: '131087935', name: 'Running Away Balloon', url: 'https://i.imgflip.com/261o3j.jpg', category: 'trending' },
+        // { id: '247375501', name: 'Buff Doge vs. Cheems', url: 'https://i.imgflip.com/43a45p.jpg', category: 'animals' },
+        // { id: '252600902', name: 'Always Has Been', url: 'https://i.imgflip.com/46e43q.jpg', category: 'movies' },
+        // { id: '370867422', name: 'Megamind Peeking', url: 'https://i.imgflip.com/64sz4u.jpg', category: 'movies' },
+        { id: '180190441', name: "They're The Same Picture", url: 'https://i.imgflip.com/2za3u1.jpg', category: 'movies' },
+        // { id: '91538330', name: 'X, X Everywhere', url: 'https://i.imgflip.com/1ihk.jpg', category: 'classic' },
+        { id: '224015000', name: 'Bernie I Am Once Again Asking', url: 'https://i.imgflip.com/3oevdk.jpg', category: 'trending' },
+        { id: '124055727', name: 'Yall Got Any More Of Them', url: 'https://i.imgflip.com/21uy0f.jpg', category: 'trending' },
+        // { id: '93895088', name: 'Expanding Brain', url: 'https://i.imgflip.com/1jhl51.jpg', category: 'trending' },
+        { id: '438680', name: 'Batman Slapping Robin', url: 'https://i.imgflip.com/9ehk.jpg', category: 'classic' },
+
+        // Classic
+        { id: '61579', name: 'One Does Not Simply', url: 'https://i.imgflip.com/1bij.jpg', category: 'classic' },
+        { id: '89370399', name: 'Roll Safe Think About It', url: 'https://i.imgflip.com/1h7in3.jpg', category: 'classic' },
+        { id: '61544', name: 'Success Kid', url: 'https://i.imgflip.com/1bip.jpg', category: 'classic' },
+        { id: '61532', name: 'The Most Interesting Man In The World', url: 'https://i.imgflip.com/1bh8.jpg', category: 'classic' },
+        { id: '61520', name: 'Futurama Fry', url: 'https://i.imgflip.com/1bgw.jpg', category: 'classic' },
+        { id: '61539', name: 'First World Problems', url: 'https://i.imgflip.com/1bhf.jpg', category: 'classic' },
+        { id: '61585', name: 'Bad Luck Brian', url: 'https://i.imgflip.com/1bhk.jpg', category: 'classic' },
+        { id: '4087833', name: 'Waiting Skeleton', url: 'https://i.imgflip.com/2fm6x.jpg', category: 'classic' },
+        { id: '101470', name: 'Ancient Aliens', url: 'https://i.imgflip.com/26am.jpg', category: 'classic' },
+        { id: '61533', name: 'X All The Y', url: 'https://i.imgflip.com/1bh9.jpg', category: 'classic' },
+        { id: '3218037', name: 'This Is Fine', url: 'https://i.imgflip.com/wxica.jpg', category: 'classic' },
+        { id: '1035805', name: 'Boardroom Meeting Suggestion', url: 'https://i.imgflip.com/m78d.jpg', category: 'classic' },
+
+        // Animals
+        { id: '135256802', name: 'Epic Handshake', url: 'https://i.imgflip.com/28j0te.jpg', category: 'trending' },
+        { id: '405658', name: 'Grumpy Cat', url: 'https://i.imgflip.com/8p0a.jpg', category: 'animals' },
+        { id: '80707627', name: 'Sad Pablo Escobar', url: 'https://i.imgflip.com/1c1uej.jpg', category: 'trending' },
+        { id: '8072285', name: 'Doge', url: 'https://i.imgflip.com/4t0m5.jpg', category: 'animals' },
+        { id: '119139145', name: 'Blank Nut Button', url: 'https://i.imgflip.com/1qxmez.jpg', category: 'trending' },
+        { id: '114585149', name: 'Inhaling Seagull', url: 'https://i.imgflip.com/1w7ygt.jpg', category: 'animals' },
+        { id: '100777631', name: 'Is This A Pigeon', url: 'https://i.imgflip.com/1o00in.jpg', category: 'animals' },
+        { id: '155067746', name: 'Surprised Pikachu', url: 'https://i.imgflip.com/2kbn1e.jpg', category: 'animals' },
+        // { id: '178591752', name: 'Tuxedo Winnie The Pooh', url: 'https://i.imgflip.com/2ybua0.jpg', category: 'animals' },
+        { id: '148909805', name: 'Monkey Puppet', url: 'https://i.imgflip.com/2gnnjh.jpg', category: 'animals' },
+
+        // Movies/TV
+        { id: '124822590', name: 'Left Exit 12 Off Ramp', url: 'https://i.imgflip.com/22bdq6.jpg', category: 'trending' },
+        // { id: '123999232', name: 'The Scroll Of Truth', url: 'https://i.imgflip.com/21tqf6.jpg', category: 'trending' },
+        { id: '27813981', name: 'Hide the Pain Harold', url: 'https://i.imgflip.com/gk5el.jpg', category: 'trending' },
+        // { id: '110163934', name: 'I Bet Hes Thinking About Other Women', url: 'https://i.imgflip.com/1tl71a.jpg', category: 'trending' },
+        // { id: '226297822', name: 'Panik Kalm Panik', url: 'https://i.imgflip.com/3qqcim.jpg', category: 'trending' },
+        { id: '135678846', name: 'Who Killed Hannibal', url: 'https://i.imgflip.com/28s2gu.jpg', category: 'movies' },
+        { id: '131940431', name: 'Gru\'s Plan', url: 'https://i.imgflip.com/26jxvz.jpg', category: 'movies' },
+        { id: '91545132', name: 'Trump Bill Signing', url: 'https://i.imgflip.com/1ii4oc.jpg', category: 'trending' },
+        { id: '100947', name: 'Matrix Morpheus', url: 'https://i.imgflip.com/25w3.jpg', category: 'movies' },
+        { id: '161865971', name: 'Marked Safe From', url: 'https://i.imgflip.com/2odckz.jpg', category: 'trending' },
+        { id: '6235864', name: 'Finding Neverland', url: 'https://i.imgflip.com/3pnmg.jpg', category: 'movies' },
+        { id: '14371066', name: 'Star Wars Yoda', url: 'https://i.imgflip.com/8k0sa.jpg', category: 'movies' },
+        // { id: '322841258', name: 'Anakin Padme', url: 'https://i.imgflip.com/5c7lwq.jpg', category: 'movies' }
+    ];
+
+    // Duplicate some for "Trending" to fill grid, or categorize better
+    // For now, this is a good start of ~40 templates.
+
+    // --- Template Rendering ---
+    function renderTemplates(category) {
+        templateGrid.innerHTML = '';
+        const filtered = category === 'all'
+            ? MEME_TEMPLATES
+            : MEME_TEMPLATES.filter(t => t.category === category || (category === 'trending' && t.category === 'trending')); // trending logic loose
+
+        filtered.forEach(t => {
+            const img = document.createElement('img');
+            img.src = t.url;
+            img.className = 'template-thumb';
+            img.alt = t.name;
+            img.crossOrigin = 'anonymous';
+            img.addEventListener('click', () => {
+                // Remove selected from others
+                document.querySelectorAll('.template-thumb').forEach(el => el.classList.remove('selected'));
+                img.classList.add('selected');
+                loadImage(t.url);
+            });
+            templateGrid.appendChild(img);
+        });
+    }
+
+    // Filter Listeners
+    chipBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            chipBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderTemplates(btn.dataset.category);
+        });
+    });
+
+    // Initial Render
+    renderTemplates('all');
 
     // --- State ---
     let currentImage = null;
@@ -42,14 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    templateThumbs.forEach(thumb => {
-        thumb.addEventListener('click', () => {
-            templateThumbs.forEach(t => t.classList.remove('selected'));
-            thumb.classList.add('selected');
-            loadImage(thumb.src);
-        });
-    });
-
+    // File Input Logic
     fileInput.addEventListener('change', handleFileSelect);
     dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = '#007bff'; });
     dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.style.borderColor = '#ccc'; });

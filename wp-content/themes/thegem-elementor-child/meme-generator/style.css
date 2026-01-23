@@ -6,8 +6,6 @@
 body {
     background: #f4f7f6;
     font-family: 'Outfit', sans-serif;
-    margin: 0;
-    padding: 0;
 }
 
 .meme-app {
@@ -124,6 +122,48 @@ body {
     text-align: center;
     color: #666;
     background: #fff;
+    transition: all 0.2s;
+}
+
+/* Category Chips */
+.filter-chips {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1rem;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scroll mobile */
+    scrollbar-width: none;
+    /* Hide scrollbar Firefox */
+}
+
+.filter-chips::-webkit-scrollbar {
+    display: none;
+    /* Hide scrollbar Chrome */
+}
+
+.chip {
+    padding: 6px 14px;
+    background: #e0e0e0;
+    border: none;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    color: #555;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    font-weight: 600;
+}
+
+.chip:hover {
+    background: #d4d4d4;
+}
+
+.chip.active {
+    background: #007bff;
+    color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
 }
 
 .upload-area input[type="file"] {
