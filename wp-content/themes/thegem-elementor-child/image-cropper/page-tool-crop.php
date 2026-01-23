@@ -3,11 +3,11 @@
  * Template Name: Image Cropper Tool
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
+if (!defined('ABSPATH')) {
     exit;
 }
 
-get_header(); 
+get_header();
 
 // Asset URL
 $assets_url = get_stylesheet_directory_uri() . '/image-cropper';
@@ -19,12 +19,14 @@ $assets_url = get_stylesheet_directory_uri() . '/image-cropper';
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <div class="resizer-app">
-    
+
     <!-- Header -->
     <header class="resizer-header">
         <a href="/" class="site-logo-link">
             <!-- Reuse Resizer Logo logic -->
-            <img src="<?php echo get_theme_file_uri('/image-resizer/logo.png'); ?>" alt="UpscaleIMG" class="resizer-logo" style="display: block; margin: 0 auto 1.5rem auto; max-width: 300px; height: auto;">
+            <img src="<?php echo get_theme_file_uri('/image-resizer/logo.png'); ?>" alt="UpscaleIMG"
+                class="resizer-logo"
+                style="display: block; margin: 0 auto 1.5rem auto; max-width: 300px; height: auto;">
         </a>
         <h1 class="resizer-title">Free Image Cropper</h1>
         <p class="resizer-subtitle">Crop your images to the perfect size and aspect ratio.</p>
@@ -32,32 +34,36 @@ $assets_url = get_stylesheet_directory_uri() . '/image-cropper';
 
     <!-- App Workspace -->
     <div class="resizer-workspace">
-        
+
         <!-- Left: Canvas / Visualizer -->
         <div class="workspace-left">
-            
+
             <div class="canvas-container" id="drop-zone">
-                
+
                 <!-- Upload Prompt -->
                 <div class="upload-overlay" id="upload-screen">
                     <h2 style="font-size: 1.5rem; margin-bottom: 1rem; color:#333;">Drag & drop images</h2>
                     <p style="color:#666; margin-bottom: 2rem;">or browse to upload</p>
-                    <button class="upload-btn" onclick="document.getElementById('file-input').click()">Upload Photos</button>
+                    <button class="upload-btn" onclick="document.getElementById('file-input').click()">Upload
+                        Photos</button>
                     <!-- Allow multiple files -->
-                    <input type="file" id="file-input" accept="image/*" multiple style="display: none;" onchange="handleFileSelect(this)">
+                    <input type="file" id="file-input" accept="image/*" multiple style="display: none;"
+                        onchange="handleFileSelect(this)">
                 </div>
 
                 <!-- Editor Wrapper -->
                 <div class="resizable-box" id="editor-box" style="display: none; background: transparent;">
-                    
+
                     <!-- The Background Image (Not Cropped, Full Size Visual) -->
-                    <img id="target-image" src="" alt="To Crop" style="width: 100%; height: 100%; object-fit: contain; pointer-events: none;">
-                    
+                    <img id="target-image" src="" alt="To Crop"
+                        style="width: 100%; height: 100%; object-fit: contain; pointer-events: none;">
+
                     <!-- Crop Overlay (The Box user drags) -->
-                    <div id="crop-overlay" style="position: absolute; border: 2px dashed #fff; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); cursor: move;">
+                    <div id="crop-overlay"
+                        style="position: absolute; border: 2px dashed #fff; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); cursor: move;">
                         <!-- Grid Lines -->
                         <div class="crop-grid"></div>
-                        
+
                         <!-- Handles -->
                         <div class="resize-handle handle-tl" data-handle="tl"></div>
                         <div class="resize-handle handle-tr" data-handle="tr"></div>
@@ -68,7 +74,7 @@ $assets_url = get_stylesheet_directory_uri() . '/image-cropper';
                 </div>
 
             </div>
-            
+
             <!-- File Queue Strip -->
             <div class="file-queue-strip" id="file-queue" style="display: none;"></div>
 
@@ -76,7 +82,7 @@ $assets_url = get_stylesheet_directory_uri() . '/image-cropper';
 
         <!-- Right: Controls -->
         <aside class="controls-panel">
-            
+
             <div class="panel-section">
                 <label class="panel-label">Aspect Ratio</label>
                 <select class="form-control" id="ratio-select">
@@ -91,8 +97,12 @@ $assets_url = get_stylesheet_directory_uri() . '/image-cropper';
 
             <div class="action-bar" style="flex-direction: column;">
                 <button class="btn-primary" id="download-btn">Crop & Download</button>
-                <button class="btn-secondary" onclick="location.reload()" style="background: transparent; text-decoration: underline;">Start Over</button>
+                <button class="btn-secondary" onclick="location.reload()"
+                    style="background: transparent; text-decoration: underline;">Start Over</button>
             </div>
+
+            <!-- More Tools Sidebar -->
+            <?php get_template_part('sidebar-tools'); ?>
 
         </aside>
 
