@@ -68,8 +68,8 @@ $assets_url = get_stylesheet_directory_uri() . '/image-compressor';
             <div class="panel-section">
                 <label class="panel-label">Compression Quality</label>
                 <input type="range" id="quality-slider" min="10" max="100" value="75" style="width: 100%;">
-                <div
-                    style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #666; margin-top: 5px;">
+                <div class="quality-labels"
+                    style="display: flex; justify-content: space-between; color: #666; margin-top: 5px;">
                     <span>Small Size</span>
                     <span id="quality-val" style="font-weight: bold; color: var(--brand-blue);">75%</span>
                     <span>Best Quality</span>
@@ -87,8 +87,7 @@ $assets_url = get_stylesheet_directory_uri() . '/image-compressor';
             </div>
 
             <div class="action-bar" style="flex-direction: column; margin-top: auto;">
-                <div id="stats-summary"
-                    style="text-align: center; margin-bottom: 15px; font-size: 0.9rem; color: #666;">
+                <div id="stats-summary" style="text-align: center; margin-bottom: 15px; color: #666;">
                     Total Saved: <span id="total-saved" style="color: #27ae60; font-weight: bold;">0%</span>
                 </div>
                 <button class="btn-primary" id="process-btn">Compress & Download</button>

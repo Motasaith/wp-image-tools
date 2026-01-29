@@ -99,7 +99,7 @@ $hub_url = get_stylesheet_directory_uri() . '/image-tools-hub';
                 </a>
 
                 <!-- 6. Photo editor -->
-                <a href="/free-photo-editor-tool-online" class="tool-card" data-category="edit">
+                <!-- <a href="/free-photo-editor-tool-online" class="tool-card" data-category="edit">
                     <div class="card-header">
                         <div class="brand-icon">
                             <img src="<?php echo $hub_url; ?>/SVG/photo_editor.svg" alt="Photo editor"
@@ -109,17 +109,17 @@ $hub_url = get_stylesheet_directory_uri() . '/image-tools-hub';
                     </div>
                     <p class="card-desc">Spice up your pictures with text, effects, and frames.</p>
                     <span class="tool-btn">Edit</span>
-                </a>
+                </a> -->
 
                 <!-- 7. Upscale Image -->
-                <a href="/bulk-image-upscaler" class="tool-card" data-category="optimize">
+                <a href="/free-image-upscaler-tool-online" class="tool-card" data-category="optimize">
                     <div class="card-header">
                         <div class="brand-icon">
                             <img src="<?php echo $hub_url; ?>/SVG/upscale_img.svg" alt="Upscale Image"
                                 style="width: 100%; height: 100%; object-fit: contain;">
                         </div>
                         <h3 class="card-title">Upscale Image</h3>
-                        <span class="badge-new">New!</span>
+                        <!-- <span class="badge-new">New!</span> -->
                     </div>
                     <p class="card-desc">Enlarge your images with high resolution AI.</p>
                     <span class="tool-btn">Upscale</span>
@@ -133,7 +133,7 @@ $hub_url = get_stylesheet_directory_uri() . '/image-tools-hub';
                                 style="width: 100%; height: 100%; object-fit: contain;">
                         </div>
                         <h3 class="card-title">Remove background</h3>
-                        <span class="badge-new">New!</span>
+                        <!-- <span class="badge-new">New!</span> -->
                     </div>
                     <p class="card-desc">Quickly remove image backgrounds with high accuracy.</p>
                     <span class="tool-btn">Remove</span>

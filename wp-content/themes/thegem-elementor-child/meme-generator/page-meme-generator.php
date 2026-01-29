@@ -102,6 +102,24 @@ $assets_url = get_stylesheet_directory_uri() . '/meme-generator';
                     </div>
                 </div>
 
+                <div class="control-group-row">
+                    <div class="half">
+                        <label>Rotation (°)</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="range" id="active-rotation" min="0" max="360" value="0" style="flex: 1;">
+                            <span id="rotation-val" style="width: 30px; text-align: right; font-weight: bold;">0°</span>
+                        </div>
+                    </div>
+                    <div class="half">
+                        <label>Weight</label>
+                        <select id="active-font-weight" class="text-input" style="padding: 0.5rem;">
+                            <option value="400">Normal</option>
+                            <option value="700">Bold</option>
+                            <option value="900">Extra Bold</option>
+                        </select>
+                    </div>
+                </div>
+
                 <button id="delete-text-btn"
                     style="width: 100%; background: #ff4757; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: 600;">Delete
                     Text</button>

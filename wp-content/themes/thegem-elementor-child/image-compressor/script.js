@@ -10,6 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const formatSelect = document.getElementById('format-select');
     const processBtn = document.getElementById('process-btn');
     const totalSavedEl = document.getElementById('total-saved');
+    const warningMsg = document.createElement('div');
+    warningMsg.style.cssText = 'font-size: 1rem; color: #d35400; margin-top: 8px; display: none; background: #fff8e1; padding: 8px 12px; border-radius: 6px; border: 1px solid #ffe0b2; line-height: 1.4;';
+    warningMsg.innerHTML = '⚠️ PNGs are lossless. Quality slider ignored. Switch to JPEG/WebP for compression.';
+    qualitySlider.parentNode.appendChild(warningMsg);
 
     // State
     let fileQueue = [];
@@ -42,7 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 blob: null,
                 targetQuality: 75, // Default
                 targetFormat: 'original', // Default
-                ext: null
+                ext: null,
+                selected: true // Default selected
             });
         }
 
@@ -67,7 +72,20 @@ document.addEventListener('DOMContentLoaded', () => {
         formatSelect.value = item.targetFormat;
 
         updateUI();
+        checkPngWarning(item);
     };
+
+    function checkPngWarning(item) {
+        let isPng = false;
+        if (item.targetFormat === 'image/png') isPng = true;
+        if (item.targetFormat === 'original' && item.file.type === 'image/png') isPng = true;
+
+        if (isPng) {
+            warningMsg.style.display = 'block';
+        } else {
+            warningMsg.style.display = 'none';
+        }
+    }
 
     // --- UI Updates ---
     function updateUI() {
@@ -85,6 +103,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderQueue() {
         fileListDiv.innerHTML = '';
+
+        // Add Header with Select All
+        if (fileQueue.length > 0) {
+            const header = document.createElement('div');
+            header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 5px;';
+
+            const allSelected = fileQueue.every(i => i.selected);
+            header.innerHTML = `
+                <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; color: #555;">
+                    <input type="checkbox" ${allSelected ? 'checked' : ''} onchange="toggleSelectAll(this.checked)">
+                    Select All (${fileQueue.length})
+                </label>
+                <div style="font-size: 0.85rem; color: #888;">
+                    ${fileQueue.filter(i => i.selected).length} selected
+                </div>
+            `;
+            fileListDiv.appendChild(header);
+        }
+
         fileQueue.forEach((item, index) => {
             const isActive = (index === activeIndex);
             const row = document.createElement('div');
@@ -93,10 +130,10 @@ document.addEventListener('DOMContentLoaded', () => {
             let borderStyle = isActive ? '2px solid var(--brand-blue)' : '1px solid #eee';
             let bgStyle = isActive ? '#f8f9ff' : '#fff';
 
-            row.style.cssText = `background: ${bgStyle}; padding: 15px; border-radius: 8px; border: ${borderStyle}; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.2s;`;
+            row.style.cssText = `background: ${bgStyle}; padding: 10px 15px; border-radius: 8px; border: ${borderStyle}; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.2s;`;
             row.onclick = (e) => {
-                // Prevent selecting if clicking remove button
-                if (!e.target.closest('.remove-btn')) setActiveItem(index);
+                // Prevent selecting if clicking interactives
+                if (!e.target.closest('.interactive')) setActiveItem(index);
             };
 
             const sizeStr = formatBytes(item.originalSize);
@@ -113,45 +150,53 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (savedBytes < 0) {
                     color = '#e74c3c'; // Red
                     text = `+${Math.abs(savedPct)}%`;
-
                     statusHtml = `
                     <div style="text-align: right;">
-                         <div style="color: ${color}; font-weight: 800; font-size: 1.1rem;">${newSizeStr}</div>
-                        <div style="font-size: 0.9rem; color: ${color}; font-weight: 600;">${text} increase</div>
-                        <div style="font-size: 0.85rem; color: #d63031; margin-top: 4px; font-weight: 600; background: #ffeaea; padding: 2px 6px; border-radius: 4px; display: inline-block;">⚠️ Try lowering Quality</div>
+                        <div style="color: ${color}; font-weight: 800; font-size: 1rem;">${newSizeStr}</div>
+                        <div style="font-size: 0.8rem; color: ${color}; font-weight: 600;">${text}</div>
                     </div>
                     `;
                 } else {
                     statusHtml = `
                     <div style="text-align: right;">
-                        <div style="color: ${color}; font-weight: 800; font-size: 1.1rem;">${newSizeStr}</div>
-                        <div style="font-size: 0.9rem; color: ${color}; font-weight: 600;">${text} saved</div>
+                        <div style="color: ${color}; font-weight: 800; font-size: 1rem;">${newSizeStr}</div>
+                        <div style="font-size: 0.8rem; color: ${color}; font-weight: 600;">${text} saved</div>
                     </div>
                 `;
                 }
             } else if (item.status === 'processing') {
-                statusHtml = `<div style="color: #f39c12;">Compressing...</div>`;
+                statusHtml = `<div style="color: #f39c12; font-size: 0.9rem;">Compressing...</div>`;
             } else {
-                // Display current settings for pending items
-                statusHtml = `<div style="text-align: right; color: #666; font-size: 0.9rem;">
-                                <div>Quality: <b>${item.targetQuality}%</b></div>
-                                <div style="font-size: 0.8rem; color: #999;">${item.targetFormat === 'original' ? 'Original Ext' : item.targetFormat.split('/')[1].toUpperCase()}</div>
+                statusHtml = `<div style="text-align: right; color: #666; font-size: 0.85rem;">
+                                <div><b>${item.targetQuality}%</b> Q</div>
                               </div>`;
+            }
+
+            // Download Button (Individual)
+            let actionBtn = '';
+            if (item.status === 'done') {
+                actionBtn = `<button class="interactive" onclick="downloadSingle(${index})" title="Download this file" style="background: #eef2ff; border: 1px solid #ccd5ff; color: var(--brand-blue); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;">
+                                ⬇
+                             </button>`;
             }
 
             row.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="interactive" onclick="event.stopPropagation()">
+                        <input type="checkbox" ${item.selected ? 'checked' : ''} onchange="toggleSelect(${index})">
+                    </div>
                     <div style="width: 40px; height: 40px; background: #eee; border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
                         <span style="font-size: 1.5rem;">📄</span>
                     </div>
                     <div>
-                        <div style="font-weight: 500; font-size: 0.95rem; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.file.name}</div>
+                        <div style="font-weight: 500; font-size: 0.95rem; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.file.name}</div>
                         <div style="font-size: 0.8rem; color: #888;">${sizeStr}</div>
                     </div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
                     ${statusHtml}
-                    <button class="remove-btn" onclick="removeItem(${index})" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #ccc;">&times;</button>
+                    ${actionBtn}
+                    <button class="remove-btn interactive" onclick="removeItem(${index})" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #ccc;">&times;</button>
                 </div>
             `;
             fileListDiv.appendChild(row);
@@ -164,6 +209,25 @@ document.addEventListener('DOMContentLoaded', () => {
         addBtnDiv.innerHTML = `<button onclick="document.getElementById('file-input').click()" style="background: #f0f0f0; border: 1px dashed #ccc; color: #555; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">+ Add More Files</button>`;
         fileListDiv.appendChild(addBtnDiv);
     }
+
+    window.toggleSelect = (index) => {
+        if (fileQueue[index]) {
+            fileQueue[index].selected = !fileQueue[index].selected;
+            updateUI(); // Re-render to update stats/buttons
+        }
+    };
+
+    window.toggleSelectAll = (checked) => {
+        fileQueue.forEach(item => item.selected = checked);
+        updateUI();
+    };
+
+    window.downloadSingle = (index) => {
+        const item = fileQueue[index];
+        if (item && item.blob) {
+            saveAs(item.blob, `compressed_${item.file.name.split('.')[0]}.${item.ext}`);
+        }
+    };
 
     window.removeItem = (index) => {
         fileQueue.splice(index, 1);
@@ -182,6 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let totalOrig = 0;
         let totalComp = 0;
         let processedCount = 0;
+        const selectedItems = fileQueue.filter(i => i.selected);
 
         fileQueue.forEach(item => {
             if (item.status === 'done') {
@@ -210,7 +275,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const allDone = fileQueue.every(i => i.status === 'done');
-        processBtn.innerText = allDone ? "Download All (Zip)" : "Compress Images";
+
+        // Update Button Text Logic
+        if (!allDone) {
+            processBtn.innerText = "Compress Images";
+            processBtn.disabled = false; // Ensure enabled for processing
+        } else {
+            // All done, showing download options
+            const count = selectedItems.length;
+            if (count === 0) {
+                processBtn.innerText = "Select files to download";
+                processBtn.disabled = true;
+            } else if (count === 1) {
+                processBtn.innerText = "Download Image";
+                processBtn.disabled = false;
+            } else {
+                processBtn.innerText = `Download ${count} images (ZIP)`;
+                processBtn.disabled = false;
+            }
+        }
     }
 
     // --- Controls ---
@@ -223,6 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (fileQueue[activeIndex].status === 'done') {
                 fileQueue[activeIndex].status = 'pending';
             }
+            checkPngWarning(fileQueue[activeIndex]);
             updateUI(); // Re-render to show updated settings in list
         }
     });
@@ -233,6 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (fileQueue[activeIndex].status === 'done') {
                 fileQueue[activeIndex].status = 'pending';
             }
+            checkPngWarning(fileQueue[activeIndex]);
             updateUI();
         }
     });
@@ -244,15 +329,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const pendingItems = fileQueue.filter(i => i.status !== 'done');
 
         if (pendingItems.length === 0) {
-            await downloadAll();
+            // DONE Mode: Download
+            await downloadSelected();
         } else {
+            // PROCESSING Mode: Compress
             processBtn.innerText = "Processing...";
             processBtn.disabled = true;
 
             for (let i = 0; i < fileQueue.length; i++) {
                 if (fileQueue[i].status !== 'done') {
                     fileQueue[i].status = 'processing';
-                    updateUI();
+                    updateUI(); // Show processing
 
                     try {
                         // Use ITEM-SPECIFIC settings
@@ -268,10 +355,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         console.error(e);
                         fileQueue[i].status = 'error';
                     }
+                    // Don't full re-render here to keep animations smooth if possible, but updateUI is fine
                     updateUI();
                 }
             }
-            processBtn.disabled = false;
+            // Logic for next state handled by updateUI stats
+            updateUI();
+            // Note: updateUI calls updateStats which sets button text/disabled state
         }
     });
 
@@ -323,19 +413,40 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    async function downloadAll() {
-        if (fileQueue.length === 1) {
-            const item = fileQueue[0];
+    async function downloadSelected() {
+        // Filter by SELECTED and DONE
+        const itemsToDownload = fileQueue.filter(i => i.selected && i.status === 'done');
+
+        if (itemsToDownload.length === 0) {
+            alert('Please select at least one image to download.');
+            return;
+        }
+
+        if (itemsToDownload.length === 1) {
+            const item = itemsToDownload[0];
             saveAs(item.blob, `compressed_${item.file.name.split('.')[0]}.${item.ext}`);
         } else {
             const zip = new JSZip();
-            fileQueue.forEach(item => {
+            itemsToDownload.forEach(item => {
                 const name = item.file.name.split('.')[0];
                 zip.file(`${name}_compressed.${item.ext}`, item.blob);
             });
 
-            const content = await zip.generateAsync({ type: "blob" });
-            saveAs(content, "compressed_images.zip");
+            // Button Feedback
+            const oldText = processBtn.innerText;
+            processBtn.innerText = "Zipping...";
+            processBtn.disabled = true;
+
+            try {
+                const content = await zip.generateAsync({ type: "blob" });
+                saveAs(content, "compressed_images.zip");
+            } catch (e) {
+                console.error("Zip error", e);
+                alert("Error creating ZIP file");
+            } finally {
+                processBtn.innerText = oldText;
+                processBtn.disabled = false;
+            }
         }
     }
 

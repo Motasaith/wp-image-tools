@@ -23,7 +23,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeTextInput = document.getElementById('active-text-input');
     const activeFontSizeInput = document.getElementById('active-font-size');
     const activeTextColorInput = document.getElementById('active-text-color');
+
     const activeStrokeColorInput = document.getElementById('active-stroke-color');
+    const activeRotationInput = document.getElementById('active-rotation');
+    const rotationValDisplay = document.getElementById('rotation-val');
+    const activeFontWeightInput = document.getElementById('active-font-weight');
 
     // --- Template Data (Top popular memes) ---
     const MEME_TEMPLATES = [
@@ -191,9 +195,13 @@ document.addEventListener('DOMContentLoaded', () => {
             text: 'EDIT TEXT',
             x: canvas.width / 2,
             y: 50, // Top
+
+
             size: 50,
             color: '#ffffff',
             strokeColor: '#000000',
+            rotation: 0,
+            fontWeight: 900,
             isSelected: true // Auto select new
         });
         selectText(id);
@@ -210,9 +218,13 @@ document.addEventListener('DOMContentLoaded', () => {
             text: 'NEW TEXT',
             x: canvas.width / 2,
             y: canvas.height / 2,
+
+
             size: 50,
             color: '#ffffff',
             strokeColor: '#000000',
+            rotation: 0,
+            fontWeight: 900,
             isSelected: true
         });
         selectText(id);
@@ -231,8 +243,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // Populate Inputs
             activeTextInput.value = selected.text;
             activeFontSizeInput.value = selected.size;
+
             activeTextColorInput.value = selected.color;
             activeStrokeColorInput.value = selected.strokeColor;
+            activeRotationInput.value = selected.rotation || 0;
+            if (rotationValDisplay) rotationValDisplay.textContent = (selected.rotation || 0) + '°';
+            if (activeFontWeightInput) activeFontWeightInput.value = selected.fontWeight || 900;
         } else {
             textEditor.style.display = 'none';
             noSelectionMsg.style.display = 'block';
@@ -248,8 +264,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Input Sync ---
     activeTextInput.addEventListener('input', (e) => updateSelected('text', e.target.value));
     activeFontSizeInput.addEventListener('input', (e) => updateSelected('size', parseInt(e.target.value)));
+
     activeTextColorInput.addEventListener('input', (e) => updateSelected('color', e.target.value));
     activeStrokeColorInput.addEventListener('input', (e) => updateSelected('strokeColor', e.target.value));
+    activeRotationInput.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        if (rotationValDisplay) rotationValDisplay.textContent = val + '°';
+        updateSelected('rotation', val);
+    });
+    if (activeFontWeightInput) {
+        activeFontWeightInput.addEventListener('change', (e) => updateSelected('fontWeight', parseInt(e.target.value)));
+    }
 
     function updateSelected(prop, value) {
         const selected = texts.find(t => t.isSelected);
@@ -269,20 +294,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ctx.drawImage(currentImage, 0, 0);
 
+
+
         texts.forEach(t => {
-            ctx.font = `900 ${t.size}px "Impact", "Oswald", sans-serif`;
+            const weight = t.fontWeight || 900;
+            ctx.font = `${weight} ${t.size}px "Impact", "Oswald", sans-serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
             // Prepare drawing
-            ctx.lineWidth = t.size / 15;
-            ctx.lineJoin = 'round';
-            ctx.strokeStyle = t.strokeColor;
-            ctx.fillStyle = t.color;
+            // Save state
+            ctx.save();
 
-            // Draw Stroke & Fill
-            ctx.strokeText(t.text, t.x, t.y);
-            ctx.fillText(t.text, t.x, t.y);
+            // Move to center of text
+            ctx.translate(t.x, t.y);
+            // Rotate
+            ctx.rotate((t.rotation || 0) * Math.PI / 180);
+
+            // Draw relative to (0,0)
+            // Stroke & Fill
+            ctx.strokeText(t.text, 0, 0);
+            ctx.fillText(t.text, 0, 0);
 
             // Selection Box (only if selected)
             if (t.isSelected) {
@@ -290,14 +322,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const width = metrics.width;
                 const height = t.size; // Approx
 
-                ctx.save();
                 ctx.strokeStyle = '#007bff';
                 ctx.lineWidth = 2;
                 ctx.setLineDash([5, 5]);
-                // Draw box centered around x,y
-                ctx.strokeRect(t.x - width / 2 - 10, t.y - height / 2 - 5, width + 20, height + 10);
-                ctx.restore();
+                // Draw box centered around 0,0
+                ctx.strokeRect(-width / 2 - 10, -height / 2 - 5, width + 20, height + 10);
             }
+
+            // Restore
+            ctx.restore();
         });
     }
 
@@ -320,19 +353,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Hit Testing
     function isHit(textObj, x, y) {
-        // Simple bounding box check
-        ctx.font = `900 ${textObj.size}px "Impact", "Oswald", sans-serif`;
+        // Calculate Bounding Box dimensions
+        const weight = textObj.fontWeight || 900;
+        ctx.font = `${weight} ${textObj.size}px "Impact", "Oswald", sans-serif`;
         const metrics = ctx.measureText(textObj.text);
         const width = metrics.width;
         const height = textObj.size; // Approx height
 
-        // Centered coordinates
-        const left = textObj.x - width / 2 - 10;
-        const right = textObj.x + width / 2 + 10;
-        const top = textObj.y - height / 2 - 5;
-        const bottom = textObj.y + height / 2 + 5;
+        // Transform mouse point into text's local coordinate system
+        // 1. Translate
+        const dx = x - textObj.x;
+        const dy = y - textObj.y;
 
-        return (x >= left && x <= right && y >= top && y <= bottom);
+        // 2. Rotate (inverse rotation)
+        const rad = -(textObj.rotation || 0) * Math.PI / 180;
+        const rx = dx * Math.cos(rad) - dy * Math.sin(rad);
+        const ry = dx * Math.sin(rad) + dy * Math.cos(rad);
+
+        // Check if rotated point is within unrotated box centered at origin
+        const halfW = width / 2 + 10; // +10 padding
+        const halfH = height / 2 + 5; // +5 padding
+
+        return (rx >= -halfW && rx <= halfW && ry >= -halfH && ry <= halfH);
     }
 
     function handleStart(e) {

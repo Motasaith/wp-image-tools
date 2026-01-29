@@ -15,7 +15,8 @@
     min-height: calc(100vh - 80px);
     background: #fff;
     font-family: 'Outfit', sans-serif;
-    padding-top: 85px; /* Matched Resizer */
+    padding-top: 85px;
+    /* Matched Resizer */
     padding-bottom: 50px;
 }
 
@@ -25,13 +26,15 @@
     background: #fff;
     margin-bottom: 2rem;
 }
+
 .resizer-title {
-    font-size: 3.5rem; /* Matched Resizer */
+    font-size: 3.5rem;
     font-weight: 800;
     margin-bottom: 0.5rem;
     color: var(--text-primary);
     line-height: 1.1;
 }
+
 .resizer-subtitle {
     color: var(--text-secondary);
     font-size: 1.1rem;
@@ -40,7 +43,8 @@
 /* Layout */
 .resizer-workspace {
     display: flex;
-    flex-direction: row; /* Default to Row */
+    flex-direction: row;
+    /* Default to Row */
     width: 100%;
     margin: 0 auto;
     background: #fff;
@@ -48,7 +52,8 @@
 
 .controls-panel {
     padding: 2.5rem;
-    box-sizing: border-box; /* Ensure padding doesn't break width */
+    box-sizing: border-box;
+    /* Ensure padding doesn't break width */
 }
 
 /* Make sure the inline styles in PHP don't get overridden weirdly, 
@@ -60,15 +65,18 @@
         flex-direction: column !important;
         height: auto !important;
     }
+
     .workspace-main {
         border-right: none !important;
         border-bottom: 1px solid #eee;
         min-height: 400px;
     }
+
     .controls-panel {
         width: 100% !important;
         border-left: none !important;
     }
+
     .action-bar {
         flex-direction: row !important;
     }
@@ -87,32 +95,39 @@
     margin-top: 1rem;
     font-size: 1rem;
 }
-.upload-btn:hover { background: #3541c8; }
+
+.upload-btn:hover {
+    background: #3541c8;
+}
 
 /* Upload State Overlay */
 .upload-overlay {
     /* Use relative positioning if parent is flex centered (which drop-zone is) */
-    position: relative; 
-    top: auto; left: auto;
+    position: relative;
+    top: auto;
+    left: auto;
     transform: none;
-    
+
     background: #fff;
     padding: 3rem;
     border-radius: 16px;
     text-align: center;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
     z-index: 100;
     border: 2px dashed #ccc;
     width: 400px;
     max-width: 90%;
-    
+
     /* Force column stack */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
 }
-.upload-overlay.hidden { display: none; }
+
+.upload-overlay.hidden {
+    display: none;
+}
 
 .btn-primary {
     background: var(--brand-blue);
@@ -125,8 +140,15 @@
     font-size: 1rem;
     cursor: pointer;
 }
-.btn-primary:hover { background: #3541c8; }
-.btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+
+.btn-primary:hover {
+    background: #3541c8;
+}
+
+.btn-primary:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
 
 .btn-secondary {
     background: transparent;
@@ -138,7 +160,10 @@
 }
 
 /* Controls */
-.panel-section { margin-bottom: 1.5rem; }
+.panel-section {
+    margin-bottom: 1.5rem;
+}
+
 .panel-label {
     display: block;
     font-weight: 700;
@@ -146,6 +171,7 @@
     font-size: 0.9rem;
     color: #333;
 }
+
 /* Custom Range Slider */
 input[type=range] {
     -webkit-appearance: none;
@@ -155,7 +181,10 @@ input[type=range] {
     background: transparent;
     margin: 10px 0;
 }
-input[type=range]:focus { outline: none; }
+
+input[type=range]:focus {
+    outline: none;
+}
 
 /* Track */
 input[type=range]::-webkit-slider-runnable-track {
@@ -166,7 +195,10 @@ input[type=range]::-webkit-slider-runnable-track {
     border-radius: 4px;
     transition: background 0.2s;
 }
-input[type=range]:hover::-webkit-slider-runnable-track { background: #dcdcdc; }
+
+input[type=range]:hover::-webkit-slider-runnable-track {
+    background: #dcdcdc;
+}
 
 /* Thumb */
 input[type=range]::-webkit-slider-thumb {
@@ -177,11 +209,15 @@ input[type=range]::-webkit-slider-thumb {
     border: 4px solid var(--brand-blue);
     cursor: pointer;
     -webkit-appearance: none;
-    margin-top: -8px; /* Offset to center */
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    margin-top: -8px;
+    /* Offset to center */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     transition: transform 0.1s;
 }
-input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.1); }
+
+input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+}
 
 /* Custom Select Dropdown */
 .form-control {
@@ -195,7 +231,8 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.1); }
     color: #333;
     -webkit-appearance: none;
     -moz-appearance: none;
-    appearance: none; /* Hide default arrow */
+    appearance: none;
+    /* Hide default arrow */
     background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
     background-repeat: no-repeat;
     background-position: right 1rem center;
@@ -203,6 +240,7 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.1); }
     cursor: pointer;
     transition: all 0.2s;
 }
+
 .form-control:focus {
     border-color: var(--brand-blue);
     background-color: #fff;
@@ -221,8 +259,19 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.1); }
     font-size: 0.95rem;
     margin-top: 15px;
     transition: color 0.2s;
-    width: 100%; /* Center alignment container */
+    width: 100%;
+    /* Center alignment container */
 }
-.btn-secondary:hover { color: var(--brand-pink); }
 
+.btn-secondary:hover {
+    color: var(--brand-pink);
+}
 
+/* NEW: Explicit text sizing for labels */
+.quality-labels {
+    font-size: 1rem !important;
+}
+
+#stats-summary {
+    font-size: 1.1rem !important;
+}

@@ -22,9 +22,9 @@ $tools = [
         'icon' => '✂️'
     ],
     [
-        'name' => 'Photo Editor',
-        'url' => '/free-photo-editor-tool-online',
-        'icon' => '🎨'
+        'name' => 'Image Upscaler',
+        'url' => '/free-image-upscaler-tool-online',
+        'icon' => '🔍✨'
     ],
     [
         'name' => 'Meme Generator',
