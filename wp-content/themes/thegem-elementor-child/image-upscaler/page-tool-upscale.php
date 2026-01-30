@@ -39,7 +39,9 @@ $assets_url = get_stylesheet_directory_uri() . '/image-upscaler';
             <div class="controls">
                 <input type="file" id="file-upload" accept="image/*" multiple class="file-input" />
                 <label for="file-upload" class="file-label">
-                    + Add Images
+                    + Add Images<br>
+                    <span style="font-size: 0.9rem; font-weight: 400; display: block; margin-top: 5px;">or Drag & Drop
+                        here</span>
                 </label>
 
                 <p class="upload-limits">
@@ -48,8 +50,24 @@ $assets_url = get_stylesheet_directory_uri() . '/image-upscaler';
                 </p>
 
                 <!-- File List Container -->
+                <div class="file-list-header"
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; padding: 0 5px;">
+                    <label
+                        style="font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center;">
+                        <input type="checkbox" id="select-all-files" style="margin-right: 8px;"> Select All
+                    </label>
+                </div>
+
                 <div class="file-list">
                     <!-- JS will populate this -->
+                </div>
+
+                <!-- Bulk Actions (Hidden by default) -->
+                <div class="bulk-actions" id="bulk-actions-container">
+                    <!-- Transfer Button Removed per user request -->
+                    <button id="btn-download-zip" class="bulk-btn zip-btn">
+                        <span>⬇</span> Download ZIP
+                    </button>
                 </div>
 
                 <!-- TAB CONTENT: UPSCALE -->
@@ -74,20 +92,9 @@ $assets_url = get_stylesheet_directory_uri() . '/image-upscaler';
 
         <main class="main-content">
             <!-- JS will populate this -->
-            <div class="image-comparison">
-                <div class="image-panel">
-                    <div class="panel-header">Original</div>
-                    <div class="image-wrapper">
-                        <div class="placeholder">Select an image from the list</div>
-                    </div>
-                </div>
-
-                <div class="image-panel">
-                    <div class="panel-header">Upscaled</div>
-                    <div class="image-wrapper">
-                        <div class="placeholder">Result will appear here</div>
-                    </div>
-                </div>
+            <div class="single-image-view">
+                <div class="placeholder">Select an image from the list<br><span
+                        style="font-size: 0.9em; opacity: 0.7;">or Drag & Drop here</span></div>
             </div>
         </main>
     </div>

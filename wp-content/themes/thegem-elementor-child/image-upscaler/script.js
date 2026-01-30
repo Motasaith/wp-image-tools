@@ -63,12 +63,18 @@ document.addEventListener('DOMContentLoaded', () => {
         );
     }
 
-    async function handleFileChange(e) {
-        if (!e.target.files || e.target.files.length === 0) return;
+    // --- File Processing Logic ---
 
-        const incomingFiles = Array.from(e.target.files);
+    async function processFiles(fileList) {
+        const incomingFiles = Array.from(fileList);
+        if (incomingFiles.length === 0) return;
+
+        let firstNewFileId = null;
 
         for (const file of incomingFiles) {
+            // Basic validation
+            if (!file.type.startsWith('image/')) continue;
+
             const previewUrl = URL.createObjectURL(file);
             const dims = await getImageDimensions(previewUrl);
             const mp = (dims.width * dims.height) / 1000000;
@@ -89,19 +95,85 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 upscaledUrl: null,
                 upscaledDetails: null,
+                upscaledUrl: null,
+                upscaledDetails: null,
                 loading: false,
-                error: null
+                error: null,
+                selected: false // Default not select
             };
 
             files.push(newFile);
-
-            // If no active file, set this one
-            if (!activeFileId) {
-                activeFileId = newFile.id;
-            }
+            if (!firstNewFileId) firstNewFileId = newFile.id;
         }
 
-        render();
+        // Auto-select the first newly added file
+        if (firstNewFileId) {
+            setActiveFile(firstNewFileId);
+        } else {
+            render();
+        }
+    }
+
+    function handleFileChange(e) {
+        if (e.target.files && e.target.files.length > 0) {
+            processFiles(e.target.files);
+        }
+        // Reset input so same file can be selected again if needed
+        e.target.value = '';
+    }
+
+    // --- Drag and Drop Logic ---
+    // --- Drag and Drop Logic ---
+    function initDragAndDrop() {
+        const fileLabel = document.querySelector('.file-label');
+        const mainContent = document.querySelector('.main-content'); // Additional target
+
+        // Prevent default behavior everywhere to stop opening files in browser
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight() {
+            if (fileLabel) fileLabel.classList.add('drag-active');
+            const singleView = document.querySelector('.single-image-view');
+            if (singleView) singleView.classList.add('drag-active');
+        }
+
+        function unhighlight() {
+            if (fileLabel) fileLabel.classList.remove('drag-active');
+            const singleView = document.querySelector('.single-image-view');
+            if (singleView) singleView.classList.remove('drag-active');
+        }
+
+        // Add visual feedback listeners to the entire app wrapper
+        const appWrapper = document.querySelector('.upscale-dashboard-wrapper');
+        if (appWrapper) {
+            appWrapper.addEventListener('dragenter', highlight, false);
+            appWrapper.addEventListener('dragover', highlight, false);
+            appWrapper.addEventListener('dragleave', unhighlight, false);
+            appWrapper.addEventListener('drop', (e) => {
+                unhighlight();
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                processFiles(files);
+            }, false);
+        }
+
+        // Click to Upload for Main Box (Delegation)
+        if (mainContent) {
+            mainContent.addEventListener('click', (e) => {
+                // Only trigger if clicking the empty single view or placeholder
+                if (e.target.closest('.single-image-view') || e.target.classList.contains('placeholder')) {
+                    const fileInput = document.getElementById('file-upload');
+                    if (fileInput) fileInput.click();
+                }
+            });
+        }
     }
 
     function removeFile(e, id) {
@@ -164,6 +236,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 megapixels: mp.toFixed(3)
             };
 
+            // Auto-advance logic removed to keep view on result
+            // The user can manually select the next file or we can add a 'Next' button later.
+            const nextPending = files.find(f => !f.upscaledUrl && !f.loading && f.id !== fileId);
+            if (nextPending) {
+                // Just for logging/future use, do not switch view
+                // activeFileId = nextPending.id; 
+            }
+
         } catch (err) {
             console.error(err);
             let msg = 'Failed to upscale';
@@ -200,18 +280,90 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Rendering ---
 
+    // --- Selection & Bulk Logic ---
+
+    function toggleSelect(id) {
+        const f = files.find(file => file.id === id);
+        if (f) {
+            f.selected = !f.selected;
+            render();
+        }
+    }
+
+    function toggleSelectAll(checked) {
+        files.forEach(f => f.selected = checked);
+        render();
+    }
+
+    async function handleDownloadZip() {
+        const selectedFiles = files.filter(f => f.selected);
+        if (selectedFiles.length === 0) return;
+
+        // Verify we have processed images
+        const processedSelected = selectedFiles.filter(f => f.upscaledUrl);
+        if (processedSelected.length === 0) {
+            alert("No processed (upscaled) images selected for zip.");
+            return;
+        }
+
+        const zip = new JSZip();
+        const btn = document.getElementById('btn-download-zip');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = 'Zipping...';
+        btn.disabled = true;
+
+        try {
+            for (const f of processedSelected) {
+                const res = await fetch(f.upscaledUrl);
+                const blob = await res.blob();
+                const name = f.upscaledDetails ? f.upscaledDetails.name : `upscaled_${f.name}`;
+                zip.file(name, blob);
+            }
+
+            const content = await zip.generateAsync({ type: "blob" });
+
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = "upscaled_images.zip";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+        } catch (err) {
+            console.error("Zip failed", err);
+            alert("Failed to create zip.");
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    // --- Rendering ---
+
     function render() {
         renderFileList();
         renderMainContent();
         renderControls();
+        renderBulkActions();
     }
 
     function renderFileList() {
         fileListContainer.innerHTML = '';
+
+        const selectAllCb = document.getElementById('select-all-files');
+        if (selectAllCb) {
+            const allSelected = files.length > 0 && files.every(f => f.selected);
+            selectAllCb.checked = allSelected;
+            selectAllCb.onclick = (e) => toggleSelectAll(e.target.checked);
+        }
+
         files.forEach(f => {
             const item = document.createElement('div');
             item.className = `file-item ${f.id === activeFileId ? 'active' : ''}`;
-            item.onclick = () => setActiveFile(f.id);
+            // Clicking item sets active, clicking checkbox toggles select
+            item.onclick = (e) => {
+                if (e.target.type !== 'checkbox') setActiveFile(f.id);
+            };
 
             let status = '';
             if (f.loading) status = '...';
@@ -221,18 +373,40 @@ document.addEventListener('DOMContentLoaded', () => {
             const statusClass = f.error ? 'error' : (f.upscaledUrl ? 'success' : '');
 
             item.innerHTML = `
-                <div class="file-item-info">
-                    <span class="file-item-name" title="${f.name}">${f.name}</span>
-                    <span class="file-status ${statusClass}">${status}</span>
+                <div style="display: flex; align-items: center;">
+                    <input type="checkbox" class="file-checkbox" ${f.selected ? 'checked' : ''}>
+                    <div class="file-item-info">
+                        <span class="file-item-name" title="${f.name}">${f.name}</span>
+                        <span class="file-status ${statusClass}">${status}</span>
+                    </div>
                 </div>
                 <button class="remove-btn">×</button>
             `;
+
+            // Bind Checkbox
+            item.querySelector('.file-checkbox').onclick = (e) => {
+                e.stopPropagation();
+                toggleSelect(f.id);
+            };
 
             // Bind Remove Button
             item.querySelector('.remove-btn').onclick = (e) => removeFile(e, f.id);
 
             fileListContainer.appendChild(item);
         });
+    }
+
+    function renderBulkActions() {
+        const container = document.getElementById('bulk-actions-container');
+        const selectedCount = files.filter(f => f.selected).length;
+
+        if (container) {
+            if (selectedCount > 0) {
+                container.style.display = 'flex';
+            } else {
+                container.style.display = 'none';
+            }
+        }
     }
 
     function renderControls() {
@@ -268,54 +442,59 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderMainContent() {
         const activeFile = files.find(f => f.id === activeFileId);
 
+        // 1. Empty State
         if (!activeFile) {
             mainContentArea.innerHTML = `
-                <div class="image-comparison">
-                  <div class="image-panel">
-                    <div class="panel-header">Original</div>
-                    <div class="image-wrapper">
-                        <div class="placeholder">Select an image from the list</div>
-                    </div>
-                  </div>
-                  <div class="image-panel">
-                    <div class="panel-header">Result</div>
-                    <div class="image-wrapper">
-                        <div class="placeholder">Result will appear here</div>
-                    </div>
-                  </div>
+                <div class="single-image-view">
+                    <div class="placeholder">Select an image from the list<br><span style="font-size: 0.9em; opacity: 0.7;">or Drag & Drop here</span></div>
                 </div>
              `;
             return;
         }
 
         const downloadBtnHtml = activeFile.upscaledUrl ? `
-            <button class="download-button" title="Download" id="download-btn-active">⬇</button>
+            <button class="primary-button" id="download-btn-active" style="width: auto; padding: 10px 20px;">Download Image ⬇</button>
         ` : '';
 
-        let resultTitle = 'Upscaled';
+        // 2. Loading State
+        if (activeFile.loading) {
+            mainContentArea.innerHTML = `
+                <div class="loading-view fade-in">
+                    <div class="loader-spinner"></div>
+                    <div class="loading-text">Upscaling your image...</div>
+                    <p style="margin-top:0.5rem; color:var(--text-secondary);">This may take a few seconds.</p>
+                </div>
+            `;
+            return;
+        }
 
-        const upscaledImageOrPlaceholder = activeFile.upscaledUrl
-            ? `<img src="${activeFile.upscaledUrl}" alt="${resultTitle}" />`
-            : `<div class="placeholder">${activeFile.loading ? 'Processing...' : 'Result will appear here'}</div>`;
-
-        let originalContentHtml = `<img src="${activeFile.previewUrl}" alt="Original" id="original-img" />`;
-
-        let bottomSection = '';
+        // 3. Upscaled State (Slider View)
         if (activeFile.upscaledUrl) {
+            const resultTitle = 'Upscaled Result';
+
             // Metadata logic
             const mOld = activeFile.originalDetails;
             const mNew = activeFile.upscaledDetails;
 
             const sliderHtml = `
-                    <div class="slider-section">
-                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 900px; margin-bottom: 1rem;">
-                            <h2>Comparison Slider</h2>
-                            <div class="zoom-controls" style="display: flex; gap: 10px; align-items: center;">
-                                <button id="zoom-out-btn" class="btn-secondary" style="padding: 5px 12px;">-</button>
-                                <span id="zoom-level-text" style="font-weight: 600; color: #555;">100%</span>
-                                <button id="zoom-in-btn" class="btn-secondary" style="padding: 5px 12px;">+</button>
+                    <div class="slider-section main-view slide-up-fade">
+                        <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; width: 100%; margin-bottom: 1rem;">
+                            <h2 style="margin:0; font-size: 1.2rem;">Comparison View</h2>
+                            
+                            <!-- Centered Download Button -->
+                            <div style="display: flex; justify-content: center;">
+                                ${downloadBtnHtml}
+                            </div>
+
+                            <div style="display: flex; gap: 1rem; align-items: center; justify-content: flex-end;">
+                                <div class="zoom-controls" style="display: flex; gap: 10px; align-items: center;">
+                                    <button id="zoom-out-btn" class="secondary-button" style="padding: 5px 12px; width:auto;">-</button>
+                                    <span id="zoom-level-text" style="font-weight: 600; color: #555;">100%</span>
+                                    <button id="zoom-in-btn" class="secondary-button" style="padding: 5px 12px; width:auto;">+</button>
+                                </div>
                             </div>
                         </div>
+                        
                         <div class="comparison-slider-container" id="comp-slider">
                             <div class="img-wrapper original-overlay">
                                 <img src="${activeFile.previewUrl}" alt="Original" />
@@ -328,77 +507,63 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             <input type="range" min="0" max="100" value="50" class="slider-input" id="slider-range">
                         </div>
+
+                        <!-- Metadata Table Below Slider -->
+                        <div class="detail-table-section" style="margin-top: 2rem;">
+                            <div class="metadata-container">
+                                <h3>Image Details</h3>
+                                <table class="metadata-table">
+                                    <thead>
+                                        <tr>
+                                            <th>DETAILS</th>
+                                            <th><span class="col-icon">🖼️ 1</span> Original</th>
+                                            <th><span class="col-icon">🖼️ 2</span> ${resultTitle}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="meta-label">File Name</td><td>${activeFile.name}</td><td>${mNew?.name}</td></tr>
+                                        <tr><td class="meta-label">File Size</td><td>${formatBytes(mOld.size)}</td><td>${formatBytes(mNew?.size)}</td></tr>
+                                        <tr><td class="meta-label">Dimensions</td><td>${mOld.width}x${mOld.height}</td><td>${mNew?.width}x${mNew?.height}</td></tr>
+                                        <tr><td class="meta-label">Megapixels</td><td>${mOld.megapixels}</td><td>${mNew?.megapixels}</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
             `;
 
-            bottomSection = `
-                <div class="detail-table-section" style="margin-top: 2rem;">
-                     <div class="metadata-container">
-                        <h3>Image Details</h3>
-                        <table class="metadata-table">
-                            <thead>
-                                <tr>
-                                    <th>DETAILS</th>
-                                    <th><span class="col-icon">🖼️ 1</span> Original</th>
-                                    <th><span class="col-icon">🖼️ 2</span> ${resultTitle}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><td class="meta-label">File Name</td><td>${activeFile.name}</td><td>${mNew?.name}</td></tr>
-                                <tr><td class="meta-label">File Size</td><td>${formatBytes(mOld.size)}</td><td>${formatBytes(mNew?.size)}</td></tr>
-                                <tr><td class="meta-label">File Type</td><td>${mOld.type}</td><td>${mNew?.type}</td></tr>
-                                <tr><td class="meta-label">MIME Type</td><td>${mOld.mime}</td><td>${mNew?.mime}</td></tr>
-                                <tr><td class="meta-label">Dimensions</td><td>${mOld.width}x${mOld.height}</td><td>${mNew?.width}x${mNew?.height}</td></tr>
-                                <tr><td class="meta-label">Megapixels</td><td>${mOld.megapixels}</td><td>${mNew?.megapixels}</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    ${sliderHtml}
-                </div>
-            `;
+            mainContentArea.innerHTML = sliderHtml;
+
+            // Bind Slider Events
+            if (document.getElementById('slider-range')) {
+                const range = document.getElementById('slider-range');
+                range.oninput = (e) => {
+                    const val = e.target.value;
+                    const overlay = document.querySelector('.upscaled-overlay');
+                    const line = document.querySelector('.slider-line');
+                    if (overlay) overlay.style.clipPath = `inset(0 ${100 - val}% 0 0)`;
+                    if (line) line.style.left = `${val}%`;
+                };
+
+                // Initialize Zoom Controls
+                initZoomControls(document.getElementById('comp-slider'));
+            }
+
+            // Bind Download
+            if (document.getElementById('download-btn-active')) {
+                document.getElementById('download-btn-active').onclick = () => handleDownload(activeFile.upscaledUrl, activeFile.upscaledDetails.name);
+            }
+
+            return;
         }
 
+        // 4. Original Image Only (Not Upscaled yet)
+        // Add fade-in animation for initial load or switching
         mainContentArea.innerHTML = `
-            <div class="image-comparison">
-              <div class="image-panel" id="panel-original">
-                <div class="panel-header">Original</div>
-                <div class="image-wrapper" id="cropper-container" style="position:relative; overflow:hidden;">
-                    ${originalContentHtml}
-                </div>
-              </div>
-              <div class="image-panel">
-                <div class="panel-header" style="display:flex; align-items:center; justify-content:space-between;">
-                    <span>${resultTitle}</span>
-                    <div style="display:flex; align-items:center;">
-                        ${downloadBtnHtml}
-                    </div>
-                </div>
-                <div class="image-wrapper">
-                    ${upscaledImageOrPlaceholder}
-                </div>
-              </div>
+            <div class="single-image-view fade-in" id="single-view-container">
+                <img src="${activeFile.previewUrl}" alt="Original" id="original-img" />
             </div>
-            ${bottomSection}
         `;
-
-        // Post-Render Bindings
-        if (document.getElementById('download-btn-active')) {
-            document.getElementById('download-btn-active').onclick = () => handleDownload(activeFile.upscaledUrl, activeFile.upscaledDetails.name);
-        }
-
-        if (document.getElementById('slider-range')) {
-            const range = document.getElementById('slider-range');
-            range.oninput = (e) => {
-                const val = e.target.value;
-                const overlay = document.querySelector('.upscaled-overlay');
-                const line = document.querySelector('.slider-line');
-                if (overlay) overlay.style.clipPath = `inset(0 ${100 - val}% 0 0)`;
-                if (line) line.style.left = `${val}%`;
-            };
-
-            // Initialize Zoom Controls
-            initZoomControls(document.getElementById('comp-slider'));
-        }
     }
 
     // --- Zoom Logic (Buttons Only) ---
@@ -424,7 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (zoomInBtn) {
             zoomInBtn.onclick = () => {
                 if (scale < 5) {
-                    scale += 0.5;
+                    scale += 0.25;
                     setTransform();
                 }
             };
@@ -433,7 +598,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (zoomOutBtn) {
             zoomOutBtn.onclick = () => {
                 if (scale > 1) {
-                    scale -= 0.5;
+                    scale -= 0.25;
                     setTransform();
                 }
             };
@@ -446,21 +611,40 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-upscale-all').addEventListener('click', handleUpscaleAll);
     fileInput.addEventListener('change', handleFileChange);
 
+    // Bulk Listeners
+    const btnBulkTransfer = document.getElementById('btn-bulk-transfer');
+    if (btnBulkTransfer) btnBulkTransfer.addEventListener('click', handleBulkTransfer);
+
+    const btnZip = document.getElementById('btn-download-zip');
+    if (btnZip) btnZip.addEventListener('click', handleDownloadZip);
+
+    // Initialize Drag & Drop
+    initDragAndDrop();
+
     // Initial render
     render();
 
     // Check for transferred file (IndexedDB method)
     if (window.transferManager) {
         console.log("Checking TransferManager for image...");
-        window.transferManager.getImage().then(data => {
-            if (data && data.blob) {
-                console.log("Transfer Found:", data.filename);
+        window.transferManager.getTransfer().then(data => {
+            if (data) {
+                console.log("Transfer Found:", data);
 
-                const file = new File([data.blob], data.filename, { type: data.blob.type });
-                handleFileChange({ target: { files: [file] } });
+                if (data.type === 'batch' && data.files && Array.isArray(data.files)) {
+                    // Handle Batch
+                    console.log(`Found batch of ${data.files.length} images`);
+                    const fileObjects = data.files.map(f => new File([f.blob], f.filename, { type: f.blob.type }));
+                    handleFileChange({ target: { files: fileObjects } });
+                } else if (data.blob) {
+                    // Handle Legacy Single
+                    console.log("Found single transfer");
+                    const file = new File([data.blob], data.filename, { type: data.blob.type });
+                    handleFileChange({ target: { files: [file] } });
+                }
 
-                // Clear after extensive delay to allow processing
-                setTimeout(() => window.transferManager.clearImage(), 2000);
+                // Clear after delay
+                setTimeout(() => window.transferManager.clearData(), 2000);
             } else {
                 console.log("No transfer found in DB.");
             }

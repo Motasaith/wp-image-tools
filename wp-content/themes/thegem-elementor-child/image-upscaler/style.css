@@ -151,6 +151,12 @@ body {
   transition: all 0.2s;
 }
 
+.file-label.drag-active {
+  border-color: var(--brand-blue);
+  background: #f0f7ff;
+  transform: scale(1.02);
+}
+
 .file-label:hover {
   border-color: var(--brand-blue);
   color: var(--brand-blue);
@@ -224,6 +230,54 @@ body {
 
 .file-status.error {
   color: #ff4757;
+}
+
+/* Bulk Selection Styles */
+.file-checkbox {
+  margin-right: 10px;
+  transform: scale(1.2);
+  cursor: pointer;
+}
+
+.bulk-actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  display: none;
+  /* Hidden by default */
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.bulk-btn {
+  width: 100%;
+  padding: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  background: #f0f7ff;
+  color: var(--brand-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.bulk-btn:hover {
+  background: #ddeeff;
+  border-color: var(--brand-blue);
+}
+
+.bulk-btn.zip-btn {
+  background: #27ae60;
+  color: white;
+}
+
+.bulk-btn.zip-btn:hover {
+  background: #219150;
 }
 
 .remove-btn {
@@ -545,4 +599,175 @@ body {
   .image-comparison {
     flex-direction: column;
   }
+}
+
+/* --- New Single View & Animations --- */
+
+/* Single Image View (Original Only) */
+.single-image-view {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  min-height: 400px;
+  background: var(--panel-bg);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.single-image-view img {
+  max-width: 100%;
+  max-height: 600px;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.single-image-view.drag-active {
+  border: 2px dashed var(--brand-blue);
+  background: #f0f7ff;
+}
+
+.single-image-view.drag-active {
+  border: 2px dashed var(--brand-blue);
+  background: #f0f7ff;
+}
+
+/* Loading View */
+.loading-view {
+  width: 100%;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: var(--panel-bg);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.loader-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid var(--brand-blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1.5rem;
+}
+
+.loading-text {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.6;
+  }
+}
+
+/* Transitions */
+.fade-in {
+  animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.slide-up-fade {
+  animation: slideUpFade 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modified Slider Section for Top View */
+.slider-section.main-view {
+  margin-top: 0;
+  width: 100%;
+  max-width: 100%;
+  /* Ensure it fits in viewport minus header/padding */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.slider-section.main-view .comparison-slider-container {
+  max-width: 100%;
+  margin: 0 auto;
+  /* Limit height to viewport to prevent scrolling */
+  max-height: 70vh;
+  /* Maintain aspect ratio wrapper behavior if possible, but restriction is key */
+  display: flex;
+  justify-content: center;
+  background: #f0f0f0;
+  /* Backdrop for contain fit */
+}
+
+/* Ensure images scale down properly */
+.img-wrapper img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 70vh;
+  /* Match container limit */
+  object-fit: contain;
+  margin: 0 auto;
+}
+
+/* Specific fix for overlay wrapper to match size */
+.img-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.upscaled-overlay {
+  background: transparent;
+  /* Fix potential white background blocking */
 }

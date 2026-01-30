@@ -37,16 +37,32 @@ class TransferManager {
         });
     }
 
-    async saveImage(blob, filename) {
+    async saveBatch(fileList) {
         await this.initPromise;
         return new Promise((resolve, reject) => {
             const transaction = this.db.transaction([STORE_NAME], 'readwrite');
             const store = transaction.objectStore(STORE_NAME);
-            
+
+            // Structure: Array of { blob, filename }
+            const serializableList = fileList.map(f => {
+                // If f is already a Blob/File object (which is common from input.files)
+                if (f instanceof Blob || f instanceof File) {
+                    return {
+                        blob: f,
+                        filename: f.name || `image_${Date.now()}.png`
+                    };
+                }
+                // If f is a wrapper object { blob: ..., filename: ... }
+                return {
+                    blob: f.blob || f.file,
+                    filename: f.filename || f.name
+                };
+            });
+
             const item = {
                 id: 'active_transfer',
-                blob: blob,
-                filename: filename,
+                type: 'batch',
+                files: serializableList,
                 timestamp: Date.now()
             };
 
@@ -57,7 +73,8 @@ class TransferManager {
         });
     }
 
-    async getImage() {
+    // Main method to retrieve transfer
+    async getTransfer() {
         await this.initPromise;
         return new Promise((resolve, reject) => {
             const transaction = this.db.transaction([STORE_NAME], 'readonly');
@@ -66,7 +83,6 @@ class TransferManager {
 
             request.onsuccess = (event) => {
                 const result = event.target.result;
-                // Optional: Check timestamp to expire old images (e.g., > 1 hour)
                 if (result) {
                     resolve(result);
                 } else {
@@ -77,13 +93,18 @@ class TransferManager {
         });
     }
 
-    async clearImage() {
+    // Keep legacy single save for compatibility if needed, wrapping as batch
+    async saveImage(blob, filename) {
+        return this.saveBatch([{ blob, filename }]);
+    }
+
+    async clearData() {
         await this.initPromise;
         return new Promise((resolve, reject) => {
             const transaction = this.db.transaction([STORE_NAME], 'readwrite');
             const store = transaction.objectStore(STORE_NAME);
             const request = store.delete('active_transfer');
-            
+
             request.onsuccess = () => resolve(true);
             request.onerror = (e) => reject(e.target.error);
         });
