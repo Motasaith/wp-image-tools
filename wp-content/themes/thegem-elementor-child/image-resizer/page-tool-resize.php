@@ -75,6 +75,11 @@ $assets_url = get_stylesheet_directory_uri() . '/image-resizer';
 
             <!-- File Queue Strip -->
             <div class="file-queue-strip" id="file-queue" style="display:none;">
+                <!-- Add Button (Always First/Last?) Let's put it at the start -->
+                <div class="queue-item add-btn" onclick="document.getElementById('file-input').click()"
+                    title="Add more photos">
+                    <span style="font-size: 2rem; color: #ccc;">+</span>
+                </div>
                 <!-- Queue Items will be injected here -->
             </div>
 

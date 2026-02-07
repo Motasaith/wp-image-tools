@@ -67,6 +67,28 @@ body {
   font-size: 1.1rem;
 }
 
+/* Login Button (Responsive) */
+.upscaler-login-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: auto !important;
+  /* Override primary-button full width */
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  background: var(--brand-blue);
+  z-index: 10;
+}
+
+@media (max-width: 768px) {
+  .upscaler-login-btn {
+    position: static;
+    margin: 1rem auto 0 auto;
+    display: inline-block;
+    width: auto;
+  }
+}
+
 /* Scoped wrapper - Standard Container */
 /* Scoped wrapper - Full Width Container */
 .upscale-dashboard-wrapper {
@@ -728,7 +750,6 @@ body {
   margin-top: 0;
   width: 100%;
   max-width: 100%;
-  /* Ensure it fits in viewport minus header/padding */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -737,37 +758,246 @@ body {
 .slider-section.main-view .comparison-slider-container {
   max-width: 100%;
   margin: 0 auto;
-  /* Limit height to viewport to prevent scrolling */
-  max-height: 70vh;
-  /* Maintain aspect ratio wrapper behavior if possible, but restriction is key */
-  display: flex;
-  justify-content: center;
-  background: #f0f0f0;
-  /* Backdrop for contain fit */
-}
+  /* Fixed Height Strategy for better visibility */
+  height: 60vh;
+  min-height: 400px;
+  width: 100%;
 
-/* Ensure images scale down properly */
-.img-wrapper img {
-  display: block;
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: 70vh;
-  /* Match container limit */
-  object-fit: contain;
-  margin: 0 auto;
-}
-
-/* Specific fix for overlay wrapper to match size */
-.img-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: #f0f0f0;
+  background-image:
+    linear-gradient(45deg, #e6e6e6 25%, transparent 25%),
+    linear-gradient(-45deg, #e6e6e6 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e6e6e6 75%),
+    linear-gradient(-45deg, transparent 75%, #e6e6e6 75%);
+  background-size: 20px 20px;
+  position: relative;
+  /* Context for absolute labels */
+}
+
+/* Ensure images scale to fill the container */
+.img-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
 }
 
-.upscaled-overlay {
+.img-wrapper img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* Scale up or down to fit */
+}
+
+/* Original Image (Top Layer - Left Side) */
+.original-overlay {
+  z-index: 20;
   background: transparent;
-  /* Fix potential white background blocking */
+}
+
+/* Upscaled Image (Bottom Layer - Right Side) */
+.upscaled-overlay {
+  z-index: 10;
+}
+
+/* Slider Labels */
+.slider-label {
+  position: absolute;
+  top: 20px;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 4px;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+  z-index: 25;
+  /* Above images, below slider handle */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Left Label */
+.slider-label.label-left {
+  left: 20px;
+}
+
+/* Right Label */
+.slider-label.label-right {
+  right: 20px;
+}
+
+/* --- Responsive Comparison Header --- */
+.comparison-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.comparison-title {
+  margin: 0;
+  font-size: 1.2rem;
+  white-space: nowrap;
+}
+
+.download-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.controls-wrapper {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.zoom-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Mobile Layout for Comparison Header */
+@media (max-width: 768px) {
+  .comparison-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .comparison-title {
+    order: 1;
+  }
+
+  /* Put download button at the bottom or middle? Let's keep strict order */
+  .download-wrapper {
+    order: 3;
+    width: 100%;
+  }
+
+  .controls-wrapper {
+    order: 2;
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+/* --- Modal Styles --- */
+.upscaler-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.upscaler-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+}
+
+.upscaler-modal-content {
+  position: relative;
+  width: 90%;
+  max-width: 500px;
+  /* Final Choice: Vibrant Pink-Purple Gradient */
+  background: linear-gradient(135deg, #fc6767 0%, #ec008c 100%);
+
+  padding: 2rem;
+  border-radius: 12px;
+  color: white;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  transform: translateY(0);
+  animation: modalPop 0.3s ease-out;
+}
+
+@keyframes modalPop {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: white;
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.modal-close-btn:hover {
+  opacity: 1;
+}
+
+.modal-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: white !important;
+}
+
+.modal-desc {
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+}
+
+.modal-cta-btn {
+  display: inline-block;
+  background: white;
+  color: #ec008c;
+  /* Match gradient end */
+  font-weight: 700;
+  padding: 12px 32px;
+  border-radius: 50px;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.modal-cta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  color: #ec008c;
 }

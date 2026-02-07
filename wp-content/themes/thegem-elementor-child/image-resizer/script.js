@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let lockedRatio = 1; // Store the aspect ratio to lock to
 
     // Smart Mode State
-    let isSmartMode = false;
+    let isSmartMode = true; // Default to Smart
     let smartBgType = 'blur'; // 'blur' | 'color'
     let smartBgColor = '#ffffff';
 
@@ -51,42 +51,29 @@ document.addEventListener('DOMContentLoaded', () => {
     blurLayer.style.filter = 'blur(20px)';
     blurLayer.style.opacity = '0.8';
     blurLayer.style.zIndex = '1';
-    blurLayer.style.pointerEvents = 'none'; // Click through
+    blurLayer.style.pointerEvents = 'none';
     blurLayer.style.display = 'none';
-    editorBox.appendChild(blurLayer); // Append once
-    editorBox.insertBefore(blurLayer, targetImage); // Ensure behind target
+    editorBox.appendChild(blurLayer);
+    editorBox.insertBefore(blurLayer, targetImage);
 
-    // Ensure targetImage is z-index 2
     targetImage.style.position = 'relative';
     targetImage.style.zIndex = '5';
-
 
     // --- Mode Switching Logic ---
     window.switchMode = (mode) => {
         isSmartMode = (mode === 'smart');
-
-        // UI Tabs
         document.getElementById('mode-normal').classList.toggle('active', !isSmartMode);
         document.getElementById('mode-smart').classList.toggle('active', isSmartMode);
-
-        // Show/Hide Controls
         smartControlsDiv.style.display = isSmartMode ? 'block' : 'none';
-
-        // Update Preview
         updateSmartPreview();
-        updateVisualBox(); // Ensure box recalculates
+        updateVisualBox();
     };
 
     window.setSmartBg = (type) => {
         smartBgType = type;
-
-        // UI Pills
         document.getElementById('bg-blur-opt').classList.toggle('active', type === 'blur');
         document.getElementById('bg-color-opt').classList.toggle('active', type === 'color');
-
-        // Color Picker Visibility
         colorPickerWrap.style.display = (type === 'color') ? 'block' : 'none';
-
         updateSmartPreview();
     };
 
@@ -97,34 +84,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateSmartPreview() {
         if (!isSmartMode) {
-            // Normal Mode: Image fills box (stretch)
             targetImage.style.objectFit = 'fill';
             editorBox.style.background = 'transparent';
             blurLayer.style.display = 'none';
             return;
         }
-
-        // Smart Mode: Image Fits box (contain)
         targetImage.style.objectFit = 'contain';
-
         if (smartBgType === 'blur') {
-            // Show Blur Layer
             blurLayer.style.display = 'block';
-            editorBox.style.background = '#ccc'; // Fallback
-
-            // Sync Blur Source
+            editorBox.style.background = '#ccc';
             if (fileQueue[activeIndex]) {
                 blurLayer.src = fileQueue[activeIndex].src;
             }
         } else {
-            // Color Mode
             blurLayer.style.display = 'none';
             editorBox.style.background = smartBgColor;
         }
     }
 
+    // Initialize Smart Mode
+    switchMode('smart');
 
-    // --- Upload Handling (Existing modified) ---
+    // --- Upload Handling ---
     window.handleFileSelect = (input) => {
         if (input.files && input.files.length > 0) handleFiles(Array.from(input.files));
     };
@@ -153,14 +134,8 @@ document.addEventListener('DOMContentLoaded', () => {
             uploadScreen.classList.add('hidden');
             editorBox.style.display = 'flex';
             fileQueueDiv.style.display = 'flex';
-
-            // Force layout calc
-            editorBox.offsetHeight;
-
-            // Set active image
+            editorBox.offsetHeight; // Force reflow
             setActiveImage(fileQueue.length - 1);
-
-            // Force visualizer update again after a short delay to ensure transition/layout stability
             setTimeout(() => {
                 updateVisualBox();
                 updateSmartPreview();
@@ -184,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (fileQueue.length === 1) {
                         targetW = img.naturalWidth;
                         targetH = img.naturalHeight;
-                        lockedRatio = targetW / targetH; // Default lock to original
+                        lockedRatio = targetW / targetH;
                     }
                     resolve();
                 };
@@ -194,9 +169,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Queue UI (Existing) ---
+    // --- Queue UI with Add Button ---
     function updateQueueUI() {
         fileQueueDiv.innerHTML = '';
+
+        // Add Button
+        const addBtn = document.createElement('div');
+        addBtn.className = 'queue-item add-btn';
+        addBtn.onclick = () => document.getElementById('file-input').click();
+        addBtn.title = "Add more photos";
+        addBtn.innerHTML = '<span style="font-size: 2rem; color: #ccc;">+</span>';
+        fileQueueDiv.appendChild(addBtn);
+
         fileQueue.forEach((item, index) => {
             const thumb = document.createElement('div');
             thumb.className = `queue-item ${index === activeIndex ? 'active' : ''}`;
@@ -377,40 +361,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let finalW, finalH;
 
+        // UNIFIED VISUAL LOGIC
+        // We always base the visual scale on "How well the ORIGINAL image fits the container".
+        // Then we scale that visual representation by the Target/Original ratio.
+        // This ensures visual size creates a 1:1 feedback loop with dragging and matches slider behavior.
+
+        // 1. Calculate Base Fit Scale (fit the Original Image into the Container)
+        // If image is 4000x3000 and container is 800x600, scale is 0.2.
+        const scaleX = curContainerW / item.originalW;
+        const scaleY = curContainerH / item.originalH;
+        let baseFitScale = Math.min(scaleX, scaleY);
+
+        // Optional: If original is smaller than container, base scale can be 1 (don't auto-upscale small images?)
+        // Standard behavior is "Fit", so usually we max out at 1 if we don't want pixelation on load.
+        // But for "Standard Editor" feel, we usually zoom fit. Let's stick to true fit.
+        // if (baseFitScale > 1) baseFitScale = 1; 
+
+        // 2. Calculate "Current Zoom/Scale" based on Target Dimensions
+        // Percentage Mode: scaleFactor = percent/100
+        // Absolute Mode: scaleFactor = targetW / originalW
+        let currentScaleFactor = 1;
+
         if (resizeMode === 'percentage') {
-            // PERCENTAGE MODE: Visual Zoom
-            // 1. Calculate Base Fit (100%)
-            const originalRatio = item.originalW / item.originalH;
-            const containerRatio = curContainerW / curContainerH;
-
-            let baseFitW, baseFitH;
-            if (originalRatio > containerRatio) {
-                baseFitW = curContainerW;
-                baseFitH = baseFitW / originalRatio;
-            } else {
-                baseFitH = curContainerH;
-                baseFitW = baseFitH * originalRatio;
-            }
-
-            // 2. Apply Scale
-            const scaleFactor = targetPercent / 100;
-            finalW = baseFitW * scaleFactor;
-            finalH = baseFitH * scaleFactor;
-
+            currentScaleFactor = targetPercent / 100;
         } else {
-            // ABSOLUTE MODE (Inputs/Presets): Fit to Screen (Best Fit)
-            // Users want to see the SHAPE (Aspect Ratio) fitted in the box, 
-            // not the "real" size (which would overflow for HD presets).
-            const containerRatio = curContainerW / curContainerH;
-
-            if (targetRatio > containerRatio) {
-                finalW = curContainerW;
-                finalH = finalW / targetRatio;
-            } else {
-                finalH = curContainerH;
-                finalW = finalH * targetRatio;
-            }
+            // Avoid division by zero
+            currentScaleFactor = item.originalW > 0 ? (targetW / item.originalW) : 1;
         }
+
+        // 3. Final Visual Dimensions
+        finalW = item.originalW * baseFitScale * currentScaleFactor;
+        finalH = item.originalH * baseFitScale * currentScaleFactor;
 
         editorBox.style.width = finalW + 'px';
         editorBox.style.height = finalH + 'px';
@@ -541,17 +522,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Transfer Manager Integration ---
 
     // 1. Auto-Load from Transfer
+    // 1. Auto-Load from Transfer
     if (window.transferManager) {
-        transferManager.getImage().then(data => {
-            if (data && data.blob) {
-                // Convert blob to File object (mocking it)
-                const file = new File([data.blob], data.filename || "transfer_image.png", { type: data.blob.type });
-                handleFiles([file]).then(() => {
-                    // Show toast or notification?
-                    // console.log("Loaded image from transfer");
-                });
-                // Clear after loading so it doesn't persist forever
-                transferManager.clearImage();
+        transferManager.getTransfer().then(data => {
+            if (data) {
+                let fileObjects = [];
+                if (data.files && data.files.length > 0) {
+                    fileObjects = data.files.map(f => new File([f.blob], f.filename, { type: f.blob.type || 'image/png' }));
+                } else if (data.blob) {
+                    fileObjects = [new File([data.blob], data.filename || "transfer.png", { type: data.blob.type || 'image/png' })];
+                }
+
+                if (fileObjects.length > 0) {
+                    handleFiles(fileObjects).then(() => {
+                        // transferManager.clearData(); // Optional: clear strictly after load
+                    });
+                    // Clear after a moment to ensure it doesn't loop if reload happens? 
+                    // Or just clear immediately.
+                    transferManager.clearData();
+                }
             }
         });
     }
@@ -567,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const btn = link; // Visual feedback?
                 const originalText = link.innerHTML;
-                link.innerHTML = '⏳ Saving...';
+                link.innerHTML = '⏳ Processing...';
 
                 try {
                     // Generate Blob for ACTIVE image
@@ -590,5 +579,101 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // --- Resize Handles Logic ---
+    function initResizeHandles() {
+        const handles = document.querySelectorAll('.resize-handle');
+        let activeHandle = null;
+        let startX = 0;
+        let startY = 0;
+        let startW = 0;
+        let startH = 0;
+        let ratioW = 1; // Image Pixels per Screen Pixel
+
+        handles.forEach(handle => {
+            handle.addEventListener('mousedown', (e) => {
+                if (fileQueue.length === 0) return;
+                e.preventDefault();
+                e.stopPropagation();
+
+                activeHandle = handle.dataset.handle; // tl, tr, bl, br
+                startX = e.clientX;
+                startY = e.clientY;
+
+                // Current Input Values
+                startW = parseInt(inputWidth.value) || 0;
+                startH = parseInt(inputHeight.value) || 0;
+
+                // Calculate Ratio (Image Pixels : Screen Pixels)
+                // We assume editorBox visual width corresponds to inputWidth
+                const visualW = editorBox.offsetWidth;
+                if (visualW > 0) {
+                    ratioW = startW / visualW;
+                } else {
+                    ratioW = 1;
+                }
+
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('mouseup', stopDrag);
+            });
+        });
+
+        function onDrag(e) {
+            if (!activeHandle) return;
+            e.preventDefault();
+
+            const dxScreen = e.clientX - startX;
+            const dyScreen = e.clientY - startY;
+
+            // Convert screen delta to image delta
+            const dx = dxScreen * ratioW;
+            const dy = dyScreen * ratioW; // Use same ratio for square pixels? Yes.
+
+            let newW = startW;
+            let newH = startH;
+
+            // Apply Delta based on Handle
+            if (activeHandle.includes('r')) newW = startW + dx;
+            if (activeHandle.includes('l')) newW = startW - dx;
+            if (activeHandle.includes('b')) newH = startH + dy;
+            if (activeHandle.includes('t')) newH = startH - dy;
+
+            // Minimum 20px
+            if (newW < 20) newW = 20;
+            if (newH < 20) newH = 20;
+
+            // Aspect Ratio Lock
+            if (isLocked) {
+                // Determine dominant axis or just use Width to drive Height?
+                // Usually nicer to use the larger delta, but simple version:
+                // If corner, we might want to preserve the ratio of the drag direction?
+                // Simplest: Set W, calc H.
+
+                // If dragging a Width-only handle (e.g. Right/Left middle - not impl here), use W.
+                // For corners:
+                // Let's rely on the Width change to drive Height for consistency with inputs
+
+                // Allow Width to change freely
+                // Recalculate H
+                newH = Math.round(newW / lockedRatio);
+            }
+
+            // Update State & Inputs
+            inputWidth.value = Math.round(newW);
+            inputHeight.value = Math.round(newH);
+
+            // Trigger Absolute Update (updates visuals)
+            setAbsolute(Math.round(newW), Math.round(newH));
+        }
+
+        function stopDrag() {
+            activeHandle = null;
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('mouseup', stopDrag);
+        }
+    }
+
+    // Initialize Handles
+    initResizeHandles();
 
 });

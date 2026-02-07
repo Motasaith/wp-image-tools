@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
     const fileInput = document.getElementById('file-upload');
     const fileListContainer = document.querySelector('.file-list');
-    const mainContentArea = document.querySelector('.main-content');
+    const mainContentArea = document.getElementById('upscale-app-root') || document.querySelector('.main-content');
 
     // --- Utils ---
     const formatBytes = (bytes, decimals = 2) => {
@@ -66,8 +66,33 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- File Processing Logic ---
 
     async function processFiles(fileList) {
-        const incomingFiles = Array.from(fileList);
+        let incomingFiles = Array.from(fileList);
         if (incomingFiles.length === 0) return;
+
+        // --- GUEST LIMIT CHECK ---
+        const isLoggedIn = (typeof upscalerSettings !== 'undefined') ? upscalerSettings.isLoggedIn : false;
+
+        if (!isLoggedIn) {
+            // If dragging more than 1 file, truncate and warn
+            if (incomingFiles.length > 1) {
+                showLoginModal();
+                incomingFiles = [incomingFiles[0]];
+            }
+
+            // If trying to add a 2nd file when 1 is already there, block it
+            if (files.length > 0) {
+                // Check if we already have a file (regardless of selection)
+                // Or we can just replace the current file? 
+                // "Limit 1 image" usually means 1 in the list.
+                // Let's replace the existing list if they upload a new one, or block?
+                // Standard behavior: Append. But for limit 1, we should probably Clear & Add or Block.
+                // Let's Block to be safe and force them to delete manually if they want another.
+                showLoginModal();
+                return;
+                // Alternatively, we could clear: files = []; render(); then proceed. 
+                // But replacing might lose work (upscaled result). Blocking is safer.
+            }
+        }
 
         let firstNewFileId = null;
 
@@ -114,12 +139,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function handleFileChange(e) {
+    async function handleFileChange(e) {
         if (e.target.files && e.target.files.length > 0) {
-            processFiles(e.target.files);
+            await processFiles(e.target.files);
         }
         // Reset input so same file can be selected again if needed
-        e.target.value = '';
+        if (e.target.value) e.target.value = '';
     }
 
     // --- Drag and Drop Logic ---
@@ -205,7 +230,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const response = await fetch('/wp-json/thegem/v1/upscaler/proxy', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': (typeof upscalerSettings !== 'undefined' && upscalerSettings.nonce) ? upscalerSettings.nonce : ''
+                },
                 body: JSON.stringify({ image: base64String }),
             });
 
@@ -478,16 +506,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const sliderHtml = `
                     <div class="slider-section main-view slide-up-fade">
-                        <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; width: 100%; margin-bottom: 1rem;">
-                            <h2 style="margin:0; font-size: 1.2rem;">Comparison View</h2>
+                        <div class="comparison-header">
+                            <h2 class="comparison-title">Comparison View</h2>
                             
                             <!-- Centered Download Button -->
-                            <div style="display: flex; justify-content: center;">
+                            <div class="download-wrapper">
                                 ${downloadBtnHtml}
                             </div>
 
-                            <div style="display: flex; gap: 1rem; align-items: center; justify-content: flex-end;">
-                                <div class="zoom-controls" style="display: flex; gap: 10px; align-items: center;">
+                            <div class="controls-wrapper">
+                                <div class="zoom-controls">
                                     <button id="zoom-out-btn" class="secondary-button" style="padding: 5px 12px; width:auto;">-</button>
                                     <span id="zoom-level-text" style="font-weight: 600; color: #555;">100%</span>
                                     <button id="zoom-in-btn" class="secondary-button" style="padding: 5px 12px; width:auto;">+</button>
@@ -496,12 +524,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         
                         <div class="comparison-slider-container" id="comp-slider">
-                            <div class="img-wrapper original-overlay">
-                                <img src="${activeFile.previewUrl}" alt="Original" />
-                            </div>
-                            <div class="img-wrapper upscaled-overlay" style="clip-path: inset(0 50% 0 0);">
+                            
+                            <!-- Labels -->
+                            <div class="slider-label label-left">Original</div>
+                            <div class="slider-label label-right">Upscaled</div>
+
+                            <!-- Upscaled is now Bottom (Background) -->
+                            <div class="img-wrapper upscaled-overlay">
                                 <img src="${activeFile.upscaledUrl}" alt="Upscaled" />
                             </div>
+
+                            <!-- Original is now Top (Clipped) -->
+                            <div class="img-wrapper original-overlay" style="clip-path: inset(0 50% 0 0);">
+                                <img src="${activeFile.previewUrl}" alt="Original" />
+                            </div>
+                            
                             <div class="slider-line" style="left: 50%;">
                                 <div class="slider-button">↔</div>
                             </div>
@@ -539,7 +576,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const range = document.getElementById('slider-range');
                 range.oninput = (e) => {
                     const val = e.target.value;
-                    const overlay = document.querySelector('.upscaled-overlay');
+                    const overlay = document.querySelector('.original-overlay'); // Now clipping Original
                     const line = document.querySelector('.slider-line');
                     if (overlay) overlay.style.clipPath = `inset(0 ${100 - val}% 0 0)`;
                     if (line) line.style.left = `${val}%`;
@@ -627,7 +664,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check for transferred file (IndexedDB method)
     if (window.transferManager) {
         console.log("Checking TransferManager for image...");
-        window.transferManager.getTransfer().then(data => {
+        window.transferManager.getTransfer().then(async data => {
             if (data) {
                 console.log("Transfer Found:", data);
 
@@ -635,12 +672,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Handle Batch
                     console.log(`Found batch of ${data.files.length} images`);
                     const fileObjects = data.files.map(f => new File([f.blob], f.filename, { type: f.blob.type }));
-                    handleFileChange({ target: { files: fileObjects } });
+                    await handleFileChange({ target: { files: fileObjects } });
                 } else if (data.blob) {
                     // Handle Legacy Single
                     console.log("Found single transfer");
                     const file = new File([data.blob], data.filename, { type: data.blob.type });
-                    handleFileChange({ target: { files: [file] } });
+                    await handleFileChange({ target: { files: [file] } });
+                }
+
+                // Check for Auto-Start Flag from Shortcode Uploader
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('auto_start') === '1') {
+                    console.log("Auto-start detected. Triggering Upscale...");
+                    handleUpscaleAll();
+
+                    // Cleanup URL to prevent loop/re-trigger on refresh
+                    const newUrl = window.location.pathname;
+                    window.history.replaceState({}, '', newUrl);
                 }
 
                 // Clear after delay
@@ -663,6 +711,18 @@ document.addEventListener('DOMContentLoaded', () => {
             link.addEventListener('click', async (e) => {
                 // Check if we have an active file
                 const activeFile = files.find(f => f.id === activeFileId);
+                const hasMultiple = files.length > 1;
+                const hasUpscaled = files.some(f => f.upscaledUrl);
+
+                // Warning Logic
+                if (hasMultiple || (hasUpscaled && !activeFile)) {
+                    // Prevent default navigation initially
+                    e.preventDefault();
+
+                    // Show Custom Modal
+                    showNavWarning(link.href);
+                    return;
+                }
 
                 // We only transfer if there is a successfully upscaled image
                 if (activeFile && activeFile.upscaledUrl) {
@@ -670,7 +730,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const originalHref = link.href;
                     // Visual feedback on the link
                     const originalText = link.innerHTML;
-                    link.innerHTML = '⏳ S...'; // Shorten to fit
+                    link.innerHTML = '⏳ Processing...'; // Shorten to fit
 
                     try {
                         // Fetch blob from upscaledUrl
@@ -689,5 +749,75 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
+    // --- Login Modal Logic ---
+    function showLoginModal() {
+        const modal = document.getElementById('login-prompt-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+        } else {
+            // Fallback if modal HTML missing (unlikely)
+            alert("Guests limited to 1 image. Please login.");
+        }
+    }
+
+    function hideLoginModal() {
+        const modal = document.getElementById('login-prompt-modal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    // Modal Events
+    const modalCloseBtn = document.getElementById('modal-close-btn');
+    const modalOverlay = document.querySelector('.upscaler-modal-overlay');
+    if (modalCloseBtn) modalCloseBtn.addEventListener('click', hideLoginModal);
+    if (modalOverlay) modalOverlay.addEventListener('click', hideLoginModal);
+
+    // --- Navigation Warning Modal Logic ---
+    let pendingNavUrl = null;
+
+    function showNavWarning(url) {
+        pendingNavUrl = url;
+        const modal = document.getElementById('nav-warning-modal');
+        if (modal) modal.style.display = 'flex';
+        else {
+            if (confirm("Unsaved changes will be lost. Proceed?")) window.location.href = url;
+        }
+    }
+
+    function hideNavWarning() {
+        pendingNavUrl = null;
+        const modal = document.getElementById('nav-warning-modal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    // Bind Nav Modal Buttons
+    const navCancelBtn = document.getElementById('nav-cancel-btn');
+    const navProceedBtn = document.getElementById('nav-proceed-btn');
+
+    if (navCancelBtn) navCancelBtn.onclick = hideNavWarning;
+    if (navProceedBtn) navProceedBtn.onclick = async () => {
+        if (!pendingNavUrl) return;
+
+        // Visual Feedback
+        navProceedBtn.innerHTML = 'Saving...';
+        navProceedBtn.style.opacity = '0.7';
+
+        try {
+            // Attempt to transfer the ACTIVE file if it has a result
+            const activeFile = files.find(f => f.id === activeFileId);
+            if (activeFile && activeFile.upscaledUrl && window.transferManager) {
+                const res = await fetch(activeFile.upscaledUrl);
+                const blob = await res.blob();
+                const filename = activeFile.upscaledDetails ? activeFile.upscaledDetails.name : `upscaled_${activeFile.name}`;
+
+                await window.transferManager.saveImage(blob, filename);
+            }
+        } catch (err) {
+            console.error("Nav Transfer Error:", err);
+            // Proceed anyway
+        }
+
+        window.location.href = pendingNavUrl;
+    };
 
 });

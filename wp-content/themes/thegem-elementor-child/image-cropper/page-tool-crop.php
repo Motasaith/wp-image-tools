@@ -76,7 +76,13 @@ $assets_url = get_stylesheet_directory_uri() . '/image-cropper';
             </div>
 
             <!-- File Queue Strip -->
-            <div class="file-queue-strip" id="file-queue" style="display: none;"></div>
+            <div class="file-queue-strip" id="file-queue" style="display: none;">
+                <!-- Add Button -->
+                <div class="queue-item add-btn" onclick="document.getElementById('file-input').click()"
+                    title="Add more photos">
+                    <span style="font-size: 2rem; color: #ccc;">+</span>
+                </div>
+            </div>
 
         </div>
 

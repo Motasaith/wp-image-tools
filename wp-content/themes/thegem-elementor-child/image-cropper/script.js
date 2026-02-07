@@ -84,6 +84,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Queue UI ---
     function updateQueueUI() {
         fileQueueDiv.innerHTML = '';
+
+        // Add Button
+        const addBtn = document.createElement('div');
+        addBtn.className = 'queue-item add-btn';
+        addBtn.onclick = () => document.getElementById('file-input').click();
+        addBtn.title = "Add more photos";
+        addBtn.innerHTML = '<span style="font-size: 2rem; color: #ccc;">+</span>';
+        fileQueueDiv.appendChild(addBtn);
+
         fileQueue.forEach((item, index) => {
             const thumb = document.createElement('div');
             thumb.className = `queue-item ${index === activeIndex ? 'active' : ''}`;
@@ -146,20 +155,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.querySelectorAll('.queue-item').forEach((el, i) => el.classList.toggle('active', i === index));
 
-        // Timeout to allow image paint, then layout
-        setTimeout(() => {
-            updateEditorLayout();
-
-            // Restore State or Init
-            restoreCropState(item);
-
+        // Polling strategy to ensure layout is caught as soon as DOM renders
+        // Run immediately, then check again shortly after
+        const runLayout = () => {
+            const dims = updateEditorLayout();
+            restoreCropState(item, dims);
             updateGrid();
-        }, 50);
+        };
+
+        // 1. Immediate try
+        runLayout();
+
+        // 2. Short delay (paint)
+        setTimeout(runLayout, 50);
+
+        // 3. Safety delay (slower browsers/reflows)
+        setTimeout(runLayout, 200);
     }
 
-    function restoreCropState(item) {
-        const boxW = editorBox.clientWidth;
-        const boxH = editorBox.clientHeight;
+    function restoreCropState(item, dims) {
+        // Use passed dimensions, or fallback to DOM
+        const boxW = (dims && dims.w) ? dims.w : editorBox.clientWidth;
+        const boxH = (dims && dims.h) ? dims.h : editorBox.clientHeight;
 
         if (item.cropState) {
             // Restore from relative
@@ -175,17 +192,21 @@ document.addEventListener('DOMContentLoaded', () => {
             renderCropBox();
         } else {
             // No state? Init
-            initCropBox();
+            initCropBox(boxW, boxH);
         }
     }
 
 
     // --- Layout / Visualizer ---
+    let currentEditorW = 0;
+    let currentEditorH = 0;
+
     function updateEditorLayout() {
-        if (!imgNaturalW) return;
+        if (!imgNaturalW) return { w: 0, h: 0 };
 
         const container = document.querySelector('.canvas-container');
         // Use 85% of container size to provide ample negative space (Adobe-like feel)
+        // Fallback to 600 if container is 0 (e.g. hidden or initializing)
         const availW = (container.clientWidth || 600) * 0.85;
         const availH = (container.clientHeight || 400) * 0.85;
 
@@ -202,41 +223,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
         editorBox.style.width = finalW + 'px';
         editorBox.style.height = finalH + 'px';
+
+        currentEditorW = finalW;
+        currentEditorH = finalH;
+
+        return { w: finalW, h: finalH };
     }
     window.addEventListener('resize', () => { if (imgNaturalW) updateEditorLayout(); });
 
 
     // --- Crop Box Logic ---
-    function initCropBox() {
-        const boxW = editorBox.clientWidth;
-        const boxH = editorBox.clientHeight;
+    function initCropBox(passedW, passedH) {
+        // Use calculated dimensions if available, fallback to clientWidth
+        let boxW = passedW || currentEditorW || editorBox.clientWidth;
+        let boxH = passedH || currentEditorH || editorBox.clientHeight;
 
-        // Default: Full coverage (minus slight margin for visibility of handles)
-        cropW = boxW;
-        cropH = boxH;
+        // --- SAFEGUARD: If dimensions are 0 (first load race condition), Force Calculate ---
+        if (!boxW || !boxH) {
+            // Re-run fallback logic locally to ensure we have numbers
+            // This mimicks updateEditorLayout logic purely for initialization safety
+            const availW = 600 * 0.85;
+            const availH = 400 * 0.85;
+            const scale = (imgNaturalW > 0) ? Math.min(availW / imgNaturalW, availH / imgNaturalH) : 1;
 
-        // If ratio selected, force it while MAXIMIZING size
-        if (aspectLocked && targetRatio) {
-            // Check if current Full Box is wider or taller than target ratio relative to box
-            const boxRatio = boxW / boxH;
-
-            if (boxRatio > targetRatio) {
-                // Box is wider than target -> Limit Width, Height = Full
-                cropH = boxH;
-                cropW = cropH * targetRatio;
+            // If scale was valid calculate, otherwise default to something safe
+            if (imgNaturalW > 0) {
+                boxW = imgNaturalW * (scale > 1 ? 1 : scale);
+                boxH = imgNaturalH * (scale > 1 ? 1 : scale);
             } else {
-                // Box is taller than target -> Limit Height, Width = Full
-                cropW = boxW;
-                cropH = cropW / targetRatio;
+                // Absolute backup if imgNaturalW is missing (shouldn't happen)
+                boxW = 300;
+                boxH = 200;
             }
-
-            // Apply slight inset (95%) so it doesn't touch edges exactl? 
-            // Actually users prefer maximizing. Let's keep 100% fit for Ratio, 
-            // but for Free, let's do 98%?
-            cropW *= 0.98;
-            cropH *= 0.98;
         }
 
+        // Default: 60% coverage (centered square/rect)
+        // User request: "small square or rectangle area selected"
+        const defaultCoverage = 0.6;
+
+        cropW = boxW * defaultCoverage;
+        cropH = boxH * defaultCoverage;
+
+        // --- ABSOLUTE MINIMUM SIZE SAFEGUARD ---
+        // Prevents "dot" (zero size) issues if math fails slightly
+        if (cropW < 50) cropW = 100;
+        if (cropH < 50) cropH = 100;
+        if (cropW > boxW) cropW = boxW; // Re-clamp
+        if (cropH > boxH) cropH = boxH;
+
+        // If ratio selected, force it while MAXIMIZING size within that coverage
+        if (aspectLocked && targetRatio) {
+            const proposedRatio = cropW / cropH;
+
+            if (proposedRatio > targetRatio) {
+                // Proposed box is wider than target ratio -> Limit width by height
+                cropH = boxH * defaultCoverage; // Reset height to default coverage
+                cropW = cropH * targetRatio;
+            } else {
+                // Proposed box is taller than target ratio -> Limit height by width
+                cropW = boxW * defaultCoverage; // Reset width to default coverage
+                cropH = cropW / targetRatio;
+            }
+        }
+
+        // Center it
         cropX = (boxW - cropW) / 2;
         cropY = (boxH - cropH) / 2;
         renderCropBox();
@@ -474,13 +524,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Transfer Manager Integration ---
+    // 457 (Approximation)
     if (window.transferManager) {
         // 1. Auto-Load
-        transferManager.getImage().then(data => {
-            if (data && data.blob) {
-                const file = new File([data.blob], data.filename || "transfer_image.png", { type: data.blob.type });
-                handleFiles([file]);
-                transferManager.clearImage();
+        transferManager.getTransfer().then(data => {
+            if (data) {
+                let fileObjects = [];
+                if (data.files && data.files.length > 0) {
+                    fileObjects = data.files.map(f => new File([f.blob], f.filename, { type: f.blob.type || 'image/png' }));
+                } else if (data.blob) {
+                    fileObjects = [new File([data.blob], data.filename || "transfer.png", { type: data.blob.type || 'image/png' })];
+                }
+
+                if (fileObjects.length > 0) {
+                    handleFiles(fileObjects);
+                    transferManager.clearData();
+                }
             }
         });
 
@@ -496,7 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (!item) return;
 
                     e.preventDefault();
-                    link.innerHTML = '⏳ Saving...';
+                    link.innerHTML = '⏳ Processing...';
                     const originalHref = link.href;
 
                     try {

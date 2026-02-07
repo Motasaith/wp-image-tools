@@ -12,10 +12,13 @@
 .resizer-app {
     display: flex;
     flex-direction: column;
-    min-height: calc(100vh - 80px); /* Adjust based on header */
+    height: 100vh;
+    /* Force full height */
+    overflow: hidden;
+    /* Prevent outer scroll */
     background: #fff;
     font-family: 'Outfit', sans-serif;
-    padding-top: 85px; /* Further reduced from 110px */
+    padding-top: 85px;
     position: relative;
     z-index: 5;
 }
@@ -23,34 +26,42 @@
 /* Header / Title Area */
 .resizer-header {
     text-align: center;
-    padding: 2rem 1rem;
+    padding: 1rem;
     background: #fff;
+    flex-shrink: 0;
+    /* Keep header size fixed */
 }
+
 .resizer-logo {
-    max-height: 50px; /* Adjust as needed */
-    margin-bottom: 1.5rem;
+    max-height: 40px;
+    margin-bottom: 0.5rem;
     display: inline-block;
 }
 
 .resizer-title {
-    font-size: 3.5rem; /* Increased from 2.5rem */
+    font-size: 2rem;
     font-weight: 800;
-    margin: 0 0 0.5rem 0;
+    margin: 0;
     color: var(--text-primary);
     line-height: 1.1;
 }
+
 .resizer-subtitle {
     color: var(--text-secondary);
-    font-size: 1.1rem;
+    font-size: 0.9rem;
+    margin: 0;
 }
 
 /* Main Workspace */
 .resizer-workspace {
     display: flex;
     flex: 1;
-    height: 600px; /* Fixed height for the workspace area */
+    /* Take remaining height */
+    height: 100%;
+    /* Ensure it fills */
+    overflow: hidden;
+    /* Prevent workspace from expanding parent */
     border-top: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
 }
 
 .workspace-left {
@@ -58,12 +69,16 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    /* Canvas container internal scrolling if needed, but usually fit */
     position: relative;
+    height: 100%;
 }
 
 /* Left: Canvas Area */
 .canvas-container {
     flex: 1;
+    height: 100%;
+    width: 100%;
     background-color: var(--bg-canvas);
     background-image:
         linear-gradient(45deg, #e6e6e6 25%, transparent 25%),
@@ -74,9 +89,11 @@
     background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
     display: flex;
     align-items: center;
-    justify-content: center; /* Centers the visual-box */
+    justify-content: center;
+    /* Centers the visual-box */
     position: relative;
     overflow: hidden;
+    /* Clip content */
     padding: 2rem;
 }
 
@@ -104,49 +121,84 @@
     flex-shrink: 0;
     transition: all 0.2s;
 }
-.queue-item:hover { transform: translateY(-2px); }
+
+.queue-item:hover {
+    transform: translateY(-2px);
+}
+
 .queue-item.active {
     border-color: var(--brand-blue);
     box-shadow: 0 4px 10px rgba(72, 84, 246, 0.2);
 }
+
 .queue-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
+
 .queue-remove {
     position: absolute;
-    top: 2px; right: 2px;
-    background: rgba(0,0,0,0.5);
+    top: 2px;
+    right: 2px;
+    background: rgba(0, 0, 0, 0.5);
     color: white;
-    width: 18px; height: 18px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 14px;
     line-height: 1;
 }
-.queue-remove:hover { background: red; }
+
+.queue-remove:hover {
+    background: red;
+}
 
 /* Scrollbar for queue */
-.file-queue-strip::-webkit-scrollbar { height: 6px; }
-.file-queue-strip::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+.file-queue-strip::-webkit-scrollbar {
+    height: 6px;
+}
+
+.file-queue-strip::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+}
+
+.queue-item.add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #ccc;
+    background: #f9f9f9;
+}
+
+.queue-item.add-btn:hover {
+    border-color: var(--brand-blue);
+    background: #fff;
+}
 
 /* The Draggable Box (Visual representation of resize) */
 .resizable-box {
     position: relative;
-    box-shadow: 0 0 0 2000px rgba(0,0,0,0.5); /* Dimming outside */
+    box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.5);
+    /* Dimming outside */
     z-index: 10;
     max-width: 100%;
     max-height: 100%;
     display: flex;
-    transition: width 0.1s, height 0.1s; /* Smooth transitions */
+    transition: width 0.1s, height 0.1s;
+    /* Smooth transitions */
 }
 
 /* Image inside the box */
 .resizable-box img {
     width: 100%;
     height: 100%;
-    object-fit: fill; /* Stretch to match box */
+    object-fit: fill;
+    /* Stretch to match box */
     display: block;
 }
 
@@ -159,17 +211,41 @@
     border: 3px solid var(--brand-blue);
     border-radius: 50%;
     z-index: 20;
-    transform: translate(-50%, -50%); /* Center on corner */
+    transform: translate(-50%, -50%);
+    /* Center on corner */
 }
-.handle-tl { top: 0; left: 0; cursor: nwse-resize; }
-.handle-tr { top: 0; left: 100%; cursor: nesw-resize; }
-.handle-bl { top: 100%; left: 0; cursor: nesw-resize; }
-.handle-br { top: 100%; left: 100%; cursor: nwse-resize; }
+
+.handle-tl {
+    top: 0;
+    left: 0;
+    cursor: nwse-resize;
+}
+
+.handle-tr {
+    top: 0;
+    left: 100%;
+    cursor: nesw-resize;
+}
+
+.handle-bl {
+    top: 100%;
+    left: 0;
+    cursor: nesw-resize;
+}
+
+.handle-br {
+    top: 100%;
+    left: 100%;
+    cursor: nwse-resize;
+}
 
 /* Dashed Border for the active area */
 .resize-border {
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     border: 2px dashed var(--brand-blue);
     pointer-events: none;
     z-index: 15;
@@ -178,18 +254,22 @@
 /* Upload State Overlay */
 .upload-overlay {
     position: absolute;
-    top: 50%; left: 50%;
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%);
     background: #fff;
     padding: 3rem;
     border-radius: 16px;
     text-align: center;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
     z-index: 100;
     border: 2px dashed #ccc;
     width: 400px;
 }
-.upload-overlay.hidden { display: none; }
+
+.upload-overlay.hidden {
+    display: none;
+}
 
 .upload-btn {
     background: var(--brand-blue);
@@ -203,7 +283,10 @@
     transition: background 0.2s;
     margin-top: 1rem;
 }
-.upload-btn:hover { background: #3541c8; }
+
+.upload-btn:hover {
+    background: #3541c8;
+}
 
 
 /* Right: Controls Panel */
@@ -214,11 +297,17 @@
     display: flex;
     flex-direction: column;
     border-left: 1px solid var(--border-color);
-    box-shadow: -5px 0 20px rgba(0,0,0,0.02);
+    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.02);
     z-index: 30;
+    height: 100%;
+    overflow-y: auto;
+    /* Enable vertical scroll */
 }
 
-.panel-section { margin-bottom: 2rem; }
+.panel-section {
+    margin-bottom: 2rem;
+}
+
 .panel-label {
     display: block;
     font-weight: 700;
@@ -232,8 +321,17 @@
     gap: 10px;
     align-items: center;
 }
-.input-wrap { flex: 1; }
-.input-wrap label { font-size: 0.8rem; color: #777; display: block; margin-bottom: 4px; }
+
+.input-wrap {
+    flex: 1;
+}
+
+.input-wrap label {
+    font-size: 0.8rem;
+    color: #777;
+    display: block;
+    margin-bottom: 4px;
+}
 
 .form-control {
     width: 100%;
@@ -244,7 +342,11 @@
     font-family: inherit;
     transition: border 0.2s;
 }
-.form-control:focus { border-color: var(--brand-blue); outline: none; }
+
+.form-control:focus {
+    border-color: var(--brand-blue);
+    outline: none;
+}
 
 .link-btn {
     background: none;
@@ -258,7 +360,11 @@
     align-items: center;
     justify-content: center;
 }
-.link-btn.locked { color: var(--brand-blue); border-color: var(--brand-blue); }
+
+.link-btn.locked {
+    color: var(--brand-blue);
+    border-color: var(--brand-blue);
+}
 
 .mode-toggle {
     display: flex;
@@ -267,6 +373,7 @@
     border-radius: 8px;
     gap: 4px;
 }
+
 .mode-option {
     flex: 1;
     text-align: center;
@@ -278,11 +385,12 @@
     color: #666;
     transition: all 0.2s;
 }
+
 .mode-option.active {
     background: #fff;
     color: var(--brand-blue);
     font-weight: 700;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .pill-select {
@@ -292,6 +400,7 @@
     padding: 4px;
     border-radius: 8px;
 }
+
 .pill-option {
     flex: 1;
     text-align: center;
@@ -301,11 +410,12 @@
     border-radius: 6px;
     color: #666;
 }
+
 .pill-option.active {
     background: #fff;
     color: var(--brand-blue);
     font-weight: 600;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .action-bar {
@@ -325,7 +435,10 @@
     font-size: 1rem;
     cursor: pointer;
 }
-.btn-primary:hover { background: #3541c8; }
+
+.btn-primary:hover {
+    background: #3541c8;
+}
 
 .btn-secondary {
     background: #f0f0f0;
@@ -340,55 +453,61 @@
 /* Mobile Responsiveness */
 /* Mobile Responsiveness */
 @media (max-width: 991px) {
+
     /* Adjust main container padding for smaller headers */
     .resizer-app {
-        padding-top: 100px; 
+        height: auto;
+        overflow: visible;
+        padding-top: 100px;
     }
-    
+
     .resizer-workspace {
         flex-direction: column;
-        height: auto; /* Allow content to grow */
+        height: auto;
+        /* Allow content to grow */
+        overflow: visible;
     }
 
     /* Stack Queue below canvas */
     .workspace-left {
         width: 100%;
-        order: 1; /* Canvas below controls? Or above? usually Image first. */
-        /* User previously had controls -1 (top). Let's keep Canvas Top for logic flow? 
-           Actually, usually you upload -> see image -> edit. 
-           So Canvas (Top) -> Controls (Below) -> Queue (Bottom) */
-        order: 1; 
+        order: 1;
         height: auto;
+        overflow: visible;
     }
-    
+
     .controls-panel {
         width: 100%;
         height: auto;
         border-left: none;
         border-top: 1px solid var(--border-color);
-        order: 2; /* Controls below canvas */
+        order: 2;
+        /* Controls below canvas */
         box-shadow: none;
+        overflow: visible;
     }
 
     /* Adjust Canvas Height */
     .canvas-container {
-        height: 50vh; /* Use Viewport Height for better experience */
+        height: 50vh;
+        /* Use Viewport Height for better experience */
         min-height: 300px;
         padding: 1rem;
     }
 
     /* Header adjustments */
     .resizer-title {
-        font-size: 2.5rem; /* Smaller on mobile */
+        font-size: 2.5rem;
+        /* Smaller on mobile */
     }
-    
+
     /* Queue adjustments */
     .file-queue-strip {
         padding: 10px;
         height: auto;
         min-height: 80px;
     }
-    
+
     .queue-item {
         width: 60px;
         height: 60px;
@@ -397,11 +516,14 @@
 
 @media (max-width: 480px) {
     .resizer-app {
-        padding-top: 80px; /* Even smaller for mobile headers */
+        padding-top: 80px;
+        /* Even smaller for mobile headers */
     }
+
     .resizer-title {
         font-size: 2rem;
     }
+
     .upload-overlay {
         width: 90%;
         padding: 1.5rem;

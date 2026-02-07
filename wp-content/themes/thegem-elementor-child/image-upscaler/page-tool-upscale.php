@@ -20,7 +20,7 @@ $assets_url = get_stylesheet_directory_uri() . '/image-upscaler';
 
 <div class="upscaler-app">
 
-    <header class="upscaler-header">
+    <header class="upscaler-header" style="position: relative;">
         <!-- <a href="/" class="site-logo-link">
             <img src="<?php echo get_stylesheet_directory_uri(); ?>/image-upscaler/logo.png?v=<?php echo time(); ?>"
                 alt="UpscaleIMG" class="upscaler-logo"
@@ -28,6 +28,12 @@ $assets_url = get_stylesheet_directory_uri() . '/image-upscaler';
         </a> -->
         <h1 class="upscaler-title">Image Upscaler</h1>
         <p class="upscaler-subtitle">Easily upscale your images.</p>
+
+        <?php if (!is_user_logged_in()): ?>
+            <a href="/my-account" class="primary-button upscaler-login-btn">
+                Login for Bulk Upload
+            </a>
+        <?php endif; ?>
     </header>
 
     <div class="upscale-dashboard-wrapper">
@@ -90,17 +96,72 @@ $assets_url = get_stylesheet_directory_uri() . '/image-upscaler';
             <?php get_template_part('sidebar-tools'); ?>
         </aside>
 
-        <main class="main-content">
-            <!-- JS will populate this -->
-            <div class="single-image-view">
-                <div class="placeholder">Select an image from the list<br><span
-                        style="font-size: 0.9em; opacity: 0.7;">or Drag & Drop here</span></div>
+        <main class="main-content" style="display: flex; flex-direction: column;">
+            <!-- Guest Notice (Persists) -->
+            <?php if (!is_user_logged_in()): ?>
+                <div class="upscaler-guest-notice"
+                    style="width: 100%; max-width: 800px; margin: 0 auto 1rem auto; padding: 10px; background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; border-radius: 8px; text-align: center;">
+                    <strong>Note:</strong> Guests are limited to 5 upscales every 10 minutes. <a href="/my-account"
+                        style="color: #533f03; text-decoration: underline; font-weight: bold;">Login here</a> for higher
+                    limits.
+                </div>
+            <?php endif; ?>
+
+            <!-- App Root (JS targets this) -->
+            <div id="upscale-app-root" style="flex: 1; display: flex; flex-direction: column;">
+                <!-- Initial State (Replaced by JS immediately) -->
+                <div class="row">
+                    <div class="col-12" style="max-width: 800px; margin: 0 auto;">
+                        <div class="upscale-upload-box">Select an image from the list<br><span
+                                style="font-size: 0.9em; opacity: 0.7;">or Drag & Drop here</span></div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
 
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- Dynamic Settings (Nonce for Authentication & User Status) -->
+    <script>
+        const upscalerSettings = {
+            nonce: "<?php echo wp_create_nonce('wp_rest'); ?>",
+            isLoggedIn: <?php echo is_user_logged_in() ? 'true' : 'false'; ?>
+        };
+    </script>
+
+    <!-- Login Prompt Modal -->
+    <div id="login-prompt-modal" class="upscaler-modal" style="display: none;">
+        <div class="upscaler-modal-overlay"></div>
+        <div class="upscaler-modal-content">
+            <button class="modal-close-btn" id="modal-close-btn">×</button>
+            <div class="modal-icon">🔒</div>
+            <h3 class="modal-title">Multiple Image Upload</h3>
+            <p class="modal-desc">Guest users can only upload 1 image at a time. Please login to upload multiple images.
+            </p>
+            <a href="/my-account" class="modal-cta-btn">Login / Create Account</a>
+        </div>
+    </div>
+
+    <!-- Navigation Warning Modal -->
+    <div id="nav-warning-modal" class="upscaler-modal" style="display: none;">
+        <div class="upscaler-modal-overlay"></div>
+        <div class="upscaler-modal-content">
+            <div class="modal-icon">⚠️</div>
+            <h3 class="modal-title">Unsaved Changes</h3>
+            <p class="modal-desc">
+                Only the currently selected image will be transferred to the new tool.<br><br>
+                Any other images or unsaved changes will be lost.<br>
+                Do you want to proceed?
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem;">
+                <button id="nav-cancel-btn" class="secondary-button"
+                    style="border: 2px solid white; color: white; background: transparent;">Cancel</button>
+                <button id="nav-proceed-btn" class="modal-cta-btn">Proceed</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Logic Script -->
     <script src="<?php echo get_stylesheet_directory_uri(); ?>/transfer-manager.js?v=<?php echo time(); ?>"></script>
     <script src="<?php echo $assets_url; ?>/script.js?v=<?php echo time(); ?>"></script>

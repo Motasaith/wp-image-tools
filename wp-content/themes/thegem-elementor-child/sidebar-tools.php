@@ -48,13 +48,18 @@ $current_path = $_SERVER['REQUEST_URI'];
 ?>
 
 <div class="more-tools-widget" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #171616;">
-    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #333;">Try Other Tools</h3>
-    <ul class="tools-list" style="list-style: none; padding: 0; margin: 0;">
+    <!-- Header with ID and Icon -->
+    <h3 id="tools-widget-header"
+        style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #333; display: flex; justify-content: space-between; align-items: center;">
+        Try Other Tools
+        <span class="tools-toggle-icon" style="transition: transform 0.3s ease; font-size: 0.8em;">▼</span>
+    </h3>
+
+    <!-- List with ID -->
+    <ul id="tools-list-container" class="tools-list" style="list-style: none; padding: 0; margin: 0;">
         <?php foreach ($tools as $tool): ?>
             <?php
             // Skip if the current page URL contains the tool URL
-            // We use strpos to check if the path matches (handles sub-queries/trailing slashes loosely)
-            // Normalize by trimming slashes for robust logic if needed, but strpos is usually sufficient for these slugs
             if (strpos($current_path, $tool['url']) !== false) {
                 continue;
             }
@@ -76,5 +81,75 @@ $current_path = $_SERVER['REQUEST_URI'];
             background: #f5f5f5;
             color: #007bff !important;
         }
+
+        /* Mobile specific styles */
+        @media (max-width: 991px) {
+            #tools-widget-header {
+                cursor: pointer;
+                background: #f9f9f9;
+                padding: 10px;
+                border-radius: 8px;
+            }
+
+            .tools-list {
+                display: none;
+                /* Hidden by default on mobile */
+                padding: 0 10px !important;
+            }
+
+            .tools-list.expanded {
+                display: block;
+                animation: slideDown 0.3s ease-out;
+            }
+
+            .tools-toggle-icon.rotated {
+                transform: rotate(180deg) !important;
+            }
+
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-5px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        }
+
+        /* Desktop: Always show, hide icon */
+        @media (min-width: 992px) {
+            .tools-toggle-icon {
+                display: none;
+            }
+
+            #tools-widget-header {
+                cursor: default !important;
+            }
+
+            .tools-list {
+                display: block !important;
+            }
+        }
     </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const header = document.getElementById('tools-widget-header');
+            const list = document.getElementById('tools-list-container');
+            const icon = header ? header.querySelector('.tools-toggle-icon') : null;
+
+            if (header && list) {
+                header.addEventListener('click', function () {
+                    // Only active on mobile check via CSS state or window width
+                    if (window.getComputedStyle(list).display === 'none' || list.classList.contains('expanded') || window.innerWidth <= 991) {
+                        list.classList.toggle('expanded');
+                        if (icon) icon.classList.toggle('rotated');
+                    }
+                });
+            }
+        });
+    </script>
 </div>

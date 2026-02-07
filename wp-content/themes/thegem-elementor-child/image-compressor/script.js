@@ -469,13 +469,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Transfer Manager Integration ---
+    // 457 (Approximation)
     if (window.transferManager) {
         // 1. Auto-Load
-        transferManager.getImage().then(data => {
-            if (data && data.blob) {
-                const file = new File([data.blob], data.filename || "transfer_image.png", { type: data.blob.type });
-                handleFiles([file]);
-                transferManager.clearImage();
+        transferManager.getTransfer().then(data => {
+            if (data) {
+                let fileObjects = [];
+                if (data.files && data.files.length > 0) {
+                    fileObjects = data.files.map(f => new File([f.blob], f.filename, { type: f.blob.type || 'image/png' }));
+                } else if (data.blob) {
+                    fileObjects = [new File([data.blob], data.filename || "transfer.png", { type: data.blob.type || 'image/png' })];
+                }
+
+                if (fileObjects.length > 0) {
+                    handleFiles(fileObjects);
+                    transferManager.clearData();
+                }
             }
         });
 
@@ -493,7 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (!item) return;
 
                     e.preventDefault();
-                    link.innerHTML = '⏳ Saving...';
+                    link.innerHTML = '⏳ Processing...';
                     const originalHref = link.href;
 
                     try {
