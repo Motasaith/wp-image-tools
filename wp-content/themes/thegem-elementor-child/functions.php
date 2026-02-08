@@ -184,5 +184,48 @@ function upscaleimg_remove_cart_item_before_add_to_cart($passed, $product_id, $q
 
 
 
+
+/**
+ * Determine User Upload Limit based on Plan
+ * Guest: 1
+ * Free (Logged In): 8
+ * Basic (Product 5509): 40
+ * Pro (Product 5507): 80
+ */
+function upscaleimg_get_user_upload_limit()
+{
+    if (!is_user_logged_in()) {
+        return 1; // Guests
+    }
+
+    $user_id = get_current_user_id();
+
+    // Check for Pro Plan (5507) - Limit 80
+    if (upscaleimg_has_active_plan($user_id, 5507)) {
+        return 80;
+    }
+
+    // Check for Basic Plan (5509) - Limit 40
+    if (upscaleimg_has_active_plan($user_id, 5509)) {
+        return 40;
+    }
+
+    // Default Free Logged In - Limit 8
+    return 8;
+}
+
+/**
+ * Helper to check if user has active subscription to product
+ */
+function upscaleimg_has_active_plan($user_id, $product_id)
+{
+    if (function_exists('wcs_user_has_subscription')) {
+        return wcs_user_has_subscription($user_id, $product_id, 'active');
+    }
+    // Fallback: Check if they bought it (Lifetime access?) or manually added capability
+    // For now, assume WCS is the main method, or return false to fallback to Free.
+    return false;
+}
+
 // Include External Uploader Shortcode
 require_once get_stylesheet_directory() . '/shortcode-uploader.php';

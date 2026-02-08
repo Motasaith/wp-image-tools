@@ -54,8 +54,7 @@ body {
 }
 
 .upscaler-title {
-  font-size: 3.5rem;
-  /* Increased from 2.5rem */
+  /* Font size removed to inherit theme h1/h2 */
   font-weight: 800;
   margin: 0 0 0.5rem 0;
   color: var(--text-primary);
@@ -64,7 +63,7 @@ body {
 
 .upscaler-subtitle {
   color: var(--text-secondary);
-  font-size: 1.1rem;
+  /* Font size removed */
 }
 
 /* Login Button (Responsive) */
@@ -75,7 +74,7 @@ body {
   width: auto !important;
   /* Override primary-button full width */
   padding: 10px 20px;
-  font-size: 0.9rem;
+  /* Font size removed */
   background: var(--brand-blue);
   z-index: 10;
 }
@@ -136,7 +135,7 @@ body {
 
 /* Sidebar Controls */
 .title {
-  font-size: 1.8rem;
+  /* Font size removed */
   font-weight: 800;
   margin: 0 0 0.5rem 0;
   color: var(--text-primary);
@@ -144,7 +143,7 @@ body {
 }
 
 .subtitle {
-  font-size: 1rem;
+  /* Font size removed */
   color: var(--text-secondary);
   margin-top: 0;
   margin-bottom: 1.5rem;
@@ -186,7 +185,7 @@ body {
 }
 
 .upload-limits {
-  font-size: 0.8rem;
+  /* Font size removed */
   color: var(--text-secondary);
   text-align: center;
   margin-top: 0.5rem;
@@ -234,14 +233,14 @@ body {
 .file-item-name {
   color: var(--text-primary);
   font-weight: 600;
-  font-size: 0.95rem;
+  /* Font size removed */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .file-status {
-  font-size: 0.75rem;
+  /* Font size removed */
   color: var(--text-secondary);
   margin-top: 2px;
 }
@@ -254,12 +253,8 @@ body {
   color: #ff4757;
 }
 
-/* Bulk Selection Styles */
-.file-checkbox {
-  margin-right: 10px;
-  transform: scale(1.2);
-  cursor: pointer;
-}
+/* Bulk Selection Styles REMOVED (No longer used) */
+/* Kept generic classes if used elsewhere, but hiding checkboxes is in JS */
 
 .bulk-actions {
   margin-top: 1rem;
@@ -274,7 +269,7 @@ body {
 .bulk-btn {
   width: 100%;
   padding: 10px;
-  font-size: 0.9rem;
+  /* Font size removed */
   font-weight: 600;
   border-radius: 6px;
   cursor: pointer;
@@ -306,6 +301,7 @@ body {
   background: none;
   border: none;
   color: var(--text-secondary);
+  /* Keeping explicit size for icon button as it's not text */
   font-size: 1.4rem;
   line-height: 1;
   cursor: pointer;
@@ -319,7 +315,7 @@ body {
 .primary-button {
   width: 100%;
   padding: 14px;
-  font-size: 1rem;
+  /* Font size removed */
   font-weight: 700;
   color: white;
   background: var(--brand-blue);
@@ -344,7 +340,7 @@ body {
 .secondary-button {
   width: 100%;
   padding: 12px;
-  font-size: 0.95rem;
+  /* Font size removed */
   font-weight: 600;
   color: #fff;
   background: var(--brand-blue);
@@ -401,7 +397,7 @@ body {
   justify-content: space-between;
   align-items: center;
   color: var(--text-primary);
-  font-size: 1.1rem;
+  /* Font size removed */
 }
 
 .image-wrapper {
@@ -560,14 +556,14 @@ body {
   margin-top: 0;
   margin-bottom: 1.5rem;
   color: var(--text-primary);
-  font-size: 1.2rem;
+  /* Font size removed */
   font-weight: 700;
 }
 
 .metadata-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.95rem;
+  /* Font size removed */
 }
 
 .metadata-table thead th {
@@ -578,7 +574,7 @@ body {
   font-weight: 600;
   border-bottom: 1px solid var(--border-color);
   text-transform: uppercase;
-  font-size: 0.8rem;
+  /* Font size removed */
   letter-spacing: 0.5px;
 }
 
@@ -969,14 +965,14 @@ body {
 }
 
 .modal-title {
-  font-size: 1.5rem;
+  /* font-size: 1.5rem; */
   font-weight: 700;
   margin-bottom: 0.5rem;
   color: white !important;
 }
 
 .modal-desc {
-  font-size: 1rem;
+  /* font-size: 1rem; */
   margin-bottom: 1.5rem;
   color: rgba(255, 255, 255, 0.9);
   line-height: 1.5;

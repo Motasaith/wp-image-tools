@@ -51,17 +51,14 @@ $assets_url = get_stylesheet_directory_uri() . '/image-upscaler';
                 </label>
 
                 <p class="upload-limits">
-                    Up to 20 file(s) (Max size 10MB each).<br>
+                    (Max size 10MB each).<br>
                     Supported: JPG, JPEG, PNG, GIF, JFIF, WEBP, BMP, ICO, SVG, AVIF.
                 </p>
 
                 <!-- File List Container -->
                 <div class="file-list-header"
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; padding: 0 5px;">
-                    <label
-                        style="font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center;">
-                        <input type="checkbox" id="select-all-files" style="margin-right: 8px;"> Select All
-                    </label>
+                    <!-- Select All Removed -->
                 </div>
 
                 <div class="file-list">
@@ -126,7 +123,8 @@ $assets_url = get_stylesheet_directory_uri() . '/image-upscaler';
     <script>
         const upscalerSettings = {
             nonce: "<?php echo wp_create_nonce('wp_rest'); ?>",
-            isLoggedIn: <?php echo is_user_logged_in() ? 'true' : 'false'; ?>
+            isLoggedIn: <?php echo is_user_logged_in() ? 'true' : 'false'; ?>,
+            uploadLimit: <?php echo upscaleimg_get_user_upload_limit(); ?>
         };
     </script>
 

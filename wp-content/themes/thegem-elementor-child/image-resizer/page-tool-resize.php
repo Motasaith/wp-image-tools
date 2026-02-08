@@ -43,7 +43,7 @@ $assets_url = get_stylesheet_directory_uri() . '/image-resizer';
 
                 <!-- Upload Prompt (Initial State) -->
                 <div class="upload-overlay" id="upload-screen">
-                    <h2 style="font-size: 1.5rem; margin-bottom: 1rem; color:#333;">Drag & drop images</h2>
+                    <h2 style="margin-bottom: 1rem; color:#333;">Drag & drop images</h2>
                     <p style="color:#666; margin-bottom: 2rem;">or browse to upload multiple files</p>
                     <button class="upload-btn" onclick="document.getElementById('file-input').click()">Upload
                         photos</button>
@@ -51,7 +51,7 @@ $assets_url = get_stylesheet_directory_uri() . '/image-resizer';
                     <input type="file" id="file-input" accept="image/*" multiple style="display: none;"
                         onchange="handleFileSelect(this)">
 
-                    <div style="margin-top: 2rem; color: #888; font-size: 0.9rem;">
+                    <div style="margin-top: 2rem; color: #888;">
                         <span style="color: var(--brand-pink); margin-right: 5px;">✔</span> Free to use
                         <span style="color: var(--brand-pink); margin-left: 10px; margin-right: 5px;">✔</span> Batch
                         Processing
@@ -67,8 +67,8 @@ $assets_url = get_stylesheet_directory_uri() . '/image-resizer';
                     <div class="resize-handle handle-bl" data-handle="bl"></div>
                     <div class="resize-handle handle-br" data-handle="br"></div>
 
-                    <!-- The Image -->
-                    <img id="target-image" src="" alt="To Resize">
+                    <!-- Canvas for real-time preview (replaces img) -->
+                    <canvas id="preview-canvas"></canvas>
                 </div>
 
             </div>
@@ -78,7 +78,7 @@ $assets_url = get_stylesheet_directory_uri() . '/image-resizer';
                 <!-- Add Button (Always First/Last?) Let's put it at the start -->
                 <div class="queue-item add-btn" onclick="document.getElementById('file-input').click()"
                     title="Add more photos">
-                    <span style="font-size: 2rem; color: #ccc;">+</span>
+                    <span style="color: #ccc;">+</span>
                 </div>
                 <!-- Queue Items will be injected here -->
             </div>
@@ -149,7 +149,7 @@ $assets_url = get_stylesheet_directory_uri() . '/image-resizer';
             <div class="panel-section">
                 <label class="panel-label">Scale</label>
                 <input type="range" id="scale-slider" min="1" max="200" value="100" style="width: 100%;">
-                <div style="text-align: right; font-size: 0.8rem; color: #666; margin-top: 5px;" id="scale-val">100%
+                <div style="text-align: right; color: #666; margin-top: 5px;" id="scale-val">100%
                 </div>
             </div>
 

@@ -70,27 +70,54 @@ document.addEventListener('DOMContentLoaded', () => {
         if (incomingFiles.length === 0) return;
 
         // --- GUEST LIMIT CHECK ---
+        // --- UPLOAD LIMIT CHECK ---
         const isLoggedIn = (typeof upscalerSettings !== 'undefined') ? upscalerSettings.isLoggedIn : false;
+        const limit = (typeof upscalerSettings !== 'undefined') ? (upscalerSettings.uploadLimit || 1) : 1;
 
-        if (!isLoggedIn) {
-            // If dragging more than 1 file, truncate and warn
-            if (incomingFiles.length > 1) {
-                showLoginModal();
-                incomingFiles = [incomingFiles[0]];
+        // Current count + incoming > limit?
+        if (files.length + incomingFiles.length > limit) {
+            // If Limit is 1 (Guest), shows Guest Modal
+            // If Limit > 1 (Free/Basic), we need a generic "Upgrade" modal or reuse Login Modal with different text
+
+            // Reuse Login Modal logic but adjust text if user is logged in
+            const modalTitle = document.querySelector('#login-prompt-modal .modal-title');
+            const modalDesc = document.querySelector('#login-prompt-modal .modal-desc');
+            const modalBtn = document.querySelector('#login-prompt-modal .modal-cta-btn');
+
+            if (isLoggedIn) {
+                if (modalTitle) modalTitle.innerText = "Upload Limit Reached";
+                if (modalDesc) modalDesc.innerText = `Your plan is limited to ${limit} images at once. Please upgrade for more.`;
+                if (modalBtn) {
+                    modalBtn.innerText = "Upgrade Plan";
+                    modalBtn.href = "/pricing"; // Assuming pricing page
+                }
+            } else {
+                // Reset to Guest Default just in case
+                if (modalTitle) modalTitle.innerText = "Multiple Image Upload";
+                if (modalDesc) modalDesc.innerText = "Guest users can only upload 1 image at a time. Please login to upload multiple images.";
+                if (modalBtn) {
+                    modalBtn.innerText = "Login / Create Account";
+                    modalBtn.href = "/my-account";
+                }
             }
 
-            // If trying to add a 2nd file when 1 is already there, block it
-            if (files.length > 0) {
-                // Check if we already have a file (regardless of selection)
-                // Or we can just replace the current file? 
-                // "Limit 1 image" usually means 1 in the list.
-                // Let's replace the existing list if they upload a new one, or block?
-                // Standard behavior: Append. But for limit 1, we should probably Clear & Add or Block.
-                // Let's Block to be safe and force them to delete manually if they want another.
-                showLoginModal();
+            showLoginModal();
+
+            // Option: Process strictly up to limit? Or Block all?
+            // Usually block the excess.
+            // Let's just block the batch if it exceeds, or allow filling up to limit.
+            // User request: "he should see upgrade plan popup"
+
+            // If we already have files, block new ones.
+            if (files.length >= limit) return;
+
+            // If valid space remains, take what fits?
+            const spaceLeft = limit - files.length;
+            if (spaceLeft > 0) {
+                incomingFiles = incomingFiles.slice(0, spaceLeft);
+                // We still showed the modal to warn them
+            } else {
                 return;
-                // Alternatively, we could clear: files = []; render(); then proceed. 
-                // But replacing might lose work (upscaled result). Blocking is safer.
             }
         }
 
@@ -378,20 +405,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderFileList() {
         fileListContainer.innerHTML = '';
 
-        const selectAllCb = document.getElementById('select-all-files');
-        if (selectAllCb) {
-            const allSelected = files.length > 0 && files.every(f => f.selected);
-            selectAllCb.checked = allSelected;
-            selectAllCb.onclick = (e) => toggleSelectAll(e.target.checked);
-        }
+        // Remove "Select All" Logic entirely
+        // Just render list items
 
         files.forEach(f => {
             const item = document.createElement('div');
             item.className = `file-item ${f.id === activeFileId ? 'active' : ''}`;
-            // Clicking item sets active, clicking checkbox toggles select
-            item.onclick = (e) => {
-                if (e.target.type !== 'checkbox') setActiveFile(f.id);
-            };
+
+            // clicking anywhere sets active
+            item.onclick = () => setActiveFile(f.id);
 
             let status = '';
             if (f.loading) status = '...';
@@ -401,21 +423,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const statusClass = f.error ? 'error' : (f.upscaledUrl ? 'success' : '');
 
             item.innerHTML = `
-                <div style="display: flex; align-items: center;">
-                    <input type="checkbox" class="file-checkbox" ${f.selected ? 'checked' : ''}>
-                    <div class="file-item-info">
+                <div style="display: flex; align-items: center; width: 100%;">
+                    <div class="file-item-info" style="flex: 1;">
                         <span class="file-item-name" title="${f.name}">${f.name}</span>
                         <span class="file-status ${statusClass}">${status}</span>
                     </div>
+                    <button class="remove-btn">×</button>
                 </div>
-                <button class="remove-btn">×</button>
             `;
-
-            // Bind Checkbox
-            item.querySelector('.file-checkbox').onclick = (e) => {
-                e.stopPropagation();
-                toggleSelect(f.id);
-            };
 
             // Bind Remove Button
             item.querySelector('.remove-btn').onclick = (e) => removeFile(e, f.id);
@@ -425,15 +440,61 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderBulkActions() {
-        const container = document.getElementById('bulk-actions-container');
-        const selectedCount = files.filter(f => f.selected).length;
+        // Renamed/Repurposed to just handle the ZIP button visibility generically
+        // Check if we have > 1 upscaled images
+        const upscaledCount = files.filter(f => f.upscaledUrl).length;
+        const container = document.getElementById('bulk-actions-container'); // We might need to inject this if not present or reuse
 
+        // We can reuse the existing container logic or inject it
         if (container) {
-            if (selectedCount > 0) {
+            if (upscaledCount > 1) {
                 container.style.display = 'flex';
+                // Update text if needed... currently "Download Selected (ZIP)"
+                // We should change it to "Download All (ZIP)" via JS or assume HTML matches
+                const zipBtn = document.getElementById('btn-download-zip');
+                if (zipBtn) zipBtn.innerHTML = 'Download All (ZIP) 📦';
             } else {
                 container.style.display = 'none';
             }
+        }
+    }
+
+    // New version of handleDownloadZip that grabs ALL upscaled images
+    async function handleDownloadZip() {
+        // Filter ALL upscaled images (ignore selection)
+        const processedFiles = files.filter(f => f.upscaledUrl);
+
+        if (processedFiles.length === 0) return;
+
+        const zip = new JSZip();
+        const btn = document.getElementById('btn-download-zip');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = 'Zipping...';
+        btn.disabled = true;
+
+        try {
+            for (const f of processedFiles) {
+                const res = await fetch(f.upscaledUrl);
+                const blob = await res.blob();
+                const name = f.upscaledDetails ? f.upscaledDetails.name : `upscaled_${f.name}`;
+                zip.file(name, blob);
+            }
+
+            const content = await zip.generateAsync({ type: "blob" });
+
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = "upscaled_images.zip";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+        } catch (err) {
+            console.error("Zip failed", err);
+            alert("Failed to create zip.");
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
         }
     }
 

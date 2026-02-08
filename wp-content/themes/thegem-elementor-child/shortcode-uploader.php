@@ -25,33 +25,223 @@ function render_external_image_uploader_shortcode($atts)
     ?>
     <style>
         /* Shared Styles (Class-based to allow multiple instances) */
-        .uploader-wrapper { width: 100%; max-width: 600px; margin: 0 auto; text-align: center; position: relative; }
-        .uploader-box { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 2px dashed rgba(65, 105, 225, 0.3); border-radius: 20px; padding: 40px 20px; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: visible; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 250px; box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05); }
-        .uploader-box:hover, .uploader-box.drag-active { border-color: #4169E1; background: rgba(255, 255, 255, 0.8); transform: translateY(-2px); box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.1); }
-        .uploader-icon { font-size: 48px; color: #4169E1; margin-bottom: 15px; opacity: 0.8; }
-        .uploader-title { font-weight: 700; color: #333; margin-bottom: 8px; }
-        .uploader-subtitle { color: #555; line-height: 1.5; }
-        .uploader-spinner { display: none; width: 40px; height: 40px; border: 4px solid rgba(65, 105, 225, 0.1); border-left-color: #4169E1; border-radius: 50%; animation: spin 1s linear infinite; }
-        .bulk-upload-btn-overlay { position: absolute; top: -15px; right: 0; background: linear-gradient(135deg, #ff436b 0%, #4651e6 100%); color: #fff !important; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: 700; text-decoration: none; z-index: 100; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
-        .bulk-upload-btn-overlay:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); color: #fff !important; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
+        .uploader-wrapper {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+        }
+
+        .uploader-box {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px dashed rgba(65, 105, 225, 0.3);
+            border-radius: 20px;
+            padding: 40px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: visible;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 250px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+        }
+
+        .uploader-box:hover,
+        .uploader-box.drag-active {
+            border-color: #4169E1;
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.1);
+        }
+
+        .uploader-icon {
+            font-size: 48px;
+            color: #4169E1;
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+
+        .uploader-title {
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .uploader-subtitle {
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .uploader-spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(65, 105, 225, 0.1);
+            border-left-color: #4169E1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .bulk-upload-btn-overlay {
+            position: absolute;
+            top: -15px;
+            right: 0;
+            background: linear-gradient(135deg, #ff436b 0%, #4651e6 100%);
+            color: #fff !important;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-decoration: none;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .bulk-upload-btn-overlay:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            color: #fff !important;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
         /* Modal Styles */
-        .sc-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-        .sc-modal.active { opacity: 1; pointer-events: auto; }
-        .sc-modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
-        .sc-modal-content { position: relative; width: 90%; max-width: 500px; background: linear-gradient(135deg, #fc6767 0%, #ec008c 100%); padding: 2.5rem 2rem; border-radius: 16px; color: white; text-align: center; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .sc-modal.active .sc-modal-content { transform: scale(1); }
-        .sc-modal-close { position: absolute; top: 15px; right: 15px; background: none; border: none; color: rgba(255, 255, 255, 0.8); font-size: 1.5rem; cursor: pointer; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s; z-index: 10; }
-        .sc-modal-close:hover { background: rgba(255, 255, 255, 0.2); color: white; }
-        .sc-modal-icon { font-size: 3rem; margin-bottom: 1rem; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
-        .sc-modal-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .sc-modal-desc { font-size: 1rem; line-height: 1.5; margin-bottom: 1.5rem; color: rgba(255, 255, 255, 0.95); }
-        .sc-modal-btn { display: inline-block; background: white; color: #ec008c; padding: 12px 28px; border-radius: 50px; font-weight: 700; text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; border: none; }
-        .sc-modal-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); background: #fff; color: #d0007b; }
-        
+        .sc-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .sc-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .sc-modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+        }
+
+        .sc-modal-content {
+            position: relative;
+            width: 90%;
+            max-width: 500px;
+            background: linear-gradient(135deg, #fc6767 0%, #ec008c 100%);
+            padding: 2.5rem 2rem;
+            border-radius: 16px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .sc-modal.active .sc-modal-content {
+            transform: scale(1);
+        }
+
+        .sc-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+            z-index: 10;
+        }
+
+        .sc-modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .sc-modal-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+        }
+
+        .sc-modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sc-modal-desc {
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .sc-modal-btn {
+            display: inline-block;
+            background: white;
+            color: #ec008c;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .sc-modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            background: #fff;
+            color: #d0007b;
+        }
+
         /* Hide file input */
-        .sc-file-input { display: none; }
+        .sc-file-input {
+            display: none;
+        }
     </style>
 
     <div class="uploader-wrapper" id="<?php echo $uid; ?>_wrapper">
@@ -70,7 +260,8 @@ function render_external_image_uploader_shortcode($atts)
                 <div class="uploader-subtitle"><?php echo esc_html($a['subtitle']); ?></div>
             </div>
             <div class="uploader-spinner" id="<?php echo $uid; ?>_spinner"></div>
-            <div class="uploader-subtitle" id="<?php echo $uid; ?>_status" style="display:none; margin-top:10px;">Processing...</div>
+            <div class="uploader-subtitle" id="<?php echo $uid; ?>_status" style="display:none; margin-top:10px;">
+                Processing...</div>
         </div>
     </div>
 
@@ -97,24 +288,27 @@ function render_external_image_uploader_shortcode($atts)
             const content = document.getElementById('<?php echo $uid; ?>_content');
             const spinner = document.getElementById('<?php echo $uid; ?>_spinner');
             const status = document.getElementById('<?php echo $uid; ?>_status');
-            
+
             // Modal Elements
             const scModal = document.getElementById('<?php echo $uid; ?>_modal');
             const scOverlay = document.getElementById('<?php echo $uid; ?>_overlay');
             const scClose = document.getElementById('<?php echo $uid; ?>_close');
 
             const REDIRECT_URL = '<?php echo esc_js($a['redirect']); ?>';
-            const isUserLoggedIn = <?php echo is_user_logged_in() ? 'true' : 'false'; ?>;
+            const scSettings = {
+                isLoggedIn: <?php echo is_user_logged_in() ? 'true' : 'false'; ?>,
+                uploadLimit: <?php echo upscaleimg_get_user_upload_limit(); ?>
+            };
 
             // Modal Functions
             function showScModal() {
-                if(scModal) scModal.classList.add('active');
+                if (scModal) scModal.classList.add('active');
             }
             function hideScModal() {
-                if(scModal) scModal.classList.remove('active');
+                if (scModal) scModal.classList.remove('active');
             }
-            if(scOverlay) scOverlay.onclick = hideScModal;
-            if(scClose) scClose.onclick = hideScModal;
+            if (scOverlay) scOverlay.onclick = hideScModal;
+            if (scClose) scClose.onclick = hideScModal;
 
             // Helper: Prevent defaults
             const preventDefaults = (e) => {
@@ -167,12 +361,37 @@ function render_external_image_uploader_shortcode($atts)
                     return;
                 }
 
-                // --- GUEST RESTRICTION LOGIC ---
-                if (incomingFiles.length > 1 && !isUserLoggedIn) {
-                    // Replaced alert with Custom Modal
-                    showScModal(); 
-                    // Clear input so they can try again
-                    input.value = '';
+                // --- UPLOAD LIMIT CHECK ---
+                // "Guest" check is now part of the global limit check
+                // scSettings.uploadLimit is passed from PHP
+                const limit = (typeof scSettings !== 'undefined') ? (scSettings.uploadLimit || 1) : 1;
+
+                if (incomingFiles.length > limit) {
+                    // Reuse the existing Guest Modal but update text if Logged In
+                    const modalTitle = scModal.querySelector('.sc-modal-title');
+                    const modalDesc = scModal.querySelector('.sc-modal-desc');
+                    const modalBtn = scModal.querySelector('.sc-modal-btn');
+                    const isUserLoggedIn = (typeof scSettings !== 'undefined') ? scSettings.isLoggedIn : false;
+
+                    if (isUserLoggedIn) {
+                        if (modalTitle) modalTitle.innerText = "Upload Limit Reached";
+                        if (modalDesc) modalDesc.innerHTML = `Your plan is limited to ${limit} images at once.<br>Please upgrade for more.`;
+                        if (modalBtn) {
+                            modalBtn.innerText = "Upgrade Plan";
+                            modalBtn.href = "/pricing";
+                        }
+                    } else {
+                        // Default Guest Text (Resetting just in case)
+                        if (modalTitle) modalTitle.innerText = "Multiple Uploads Restricted";
+                        if (modalDesc) modalDesc.innerHTML = "Guest users can only upload 1 image at a time.<br>Please login to unlock features.";
+                        if (modalBtn) {
+                            modalBtn.innerText = "Login / Create Account";
+                            modalBtn.href = "/my-account";
+                        }
+                    }
+
+                    showScModal();
+                    input.value = ''; // Clear input
                     return;
                 }
 
